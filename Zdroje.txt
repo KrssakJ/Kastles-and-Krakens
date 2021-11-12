@@ -1,0 +1,10 @@
+Kod:
+delta_time: Christian Duenas - Pygame Framerate Independence (https://www.youtube.com/watch?v=XuyrHE6GIsc)
+
+Obrazky:
+tileset1: Szadi art - Craftland Demo (https://szadiart.itch.io/craftland-demo)
+
+Hudba:
+
+
+Jine:

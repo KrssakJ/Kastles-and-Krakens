@@ -71,10 +71,12 @@ class MainGame():
                     self.key_d = False
     
     def change_pos(self):
+        ### TO DO:
+        # Split self.ow_pos into self.ow_posX and self.ow_posY
         self.room = Room(self.ow_pos)
-        self.mapid = self.room.get_room(self.ow_pos)
+        self.mapid = self.room.get_room(self.ow_pos) #returns a text file that contains the name of the room
         self.map = TileMap(os.path.join(self.mapid))
-        self.map_image = self.map.load_map()
+        self.map_image = self.map.load_map() #loads the map into the self.map_image variable
         
         
     # Source: Christian Duenas - Pygame Framerate Independence
@@ -132,6 +134,9 @@ class TileMap():
         return temp_surface
                 
 class Room():
+    ### TO DO:
+    # Add a hook that will load the .csv map file upon initilization
+    # Futher tasks: get_room()
     def __init__(self, position):
         self.position = position
 #       self.mapid = mapid
@@ -140,6 +145,8 @@ class Room():
                           "room_treealley_left",        "room_crossroads_bottom",   "room_farm_right"]
         
     def get_room(self, position):
+        ### TO DO:
+        # Using the converted .csv map file (now self.room_list) + self.ow_posX + self.ow_posY, return file name of current room
         roomname = self.room_list[position]
         roomname += ".tmx"
         return roomname
