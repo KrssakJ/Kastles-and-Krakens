@@ -1,4 +1,4 @@
-import pygame, pytmx, time, os
+import pygame, pytmx, time, os, csv
 
 pygame.init()
 
@@ -22,8 +22,12 @@ class MainGame():
         
         self.player = Player(self)
         
-        # kde se hrac nachazi na mape sveta
-        self.ow_pos = 1
+        # player's current position in relation to the overworld, X and Y variables
+        self.ow_posX = 1
+        self.ow_posY = 0
+        
+        self.room = Room(self.ow_posX, self.ow_posY)
+        
         #print(self.ow_pos)
         #self.scr_pos_x = self.game_WIDTH/2
         #self.scr_pos_y = self.game_HEIGHT/2
@@ -73,8 +77,8 @@ class MainGame():
     def change_pos(self):
         ### TO DO:
         # Split self.ow_pos into self.ow_posX and self.ow_posY
-        self.room = Room(self.ow_pos)
-        self.mapid = self.room.get_room(self.ow_pos) #returns a text file that contains the name of the room
+        
+        self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
         self.map = TileMap(os.path.join(self.mapid))
         self.map_image = self.map.load_map() #loads the map into the self.map_image variable
         
@@ -137,17 +141,19 @@ class Room():
     ### TO DO:
     # Add a hook that will load the .csv map file upon initilization
     # Futher tasks: get_room()
-    def __init__(self, position):
-        self.position = position
+    def __init__(self, positionX, positionY):
+        self.positionX = positionX
+        self.positionY = positionY
 #       self.mapid = mapid
-        self.room_list = ["room_forest_cabin_inside",   "room_lake_upper_left",     "room_lake_upper_right",
-                          "room_forest_cabin",          "room_central_tree",        "room_hill_right",
-                          "room_treealley_left",        "room_crossroads_bottom",   "room_farm_right"]
+        with open("maplist.csv") as r:
+            loaded = csv.reader(r)  # reads the file, returns idk a number?
+            self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
         
-    def get_room(self, position):
+    def get_room(self, positionX, positionY):
         ### TO DO:
         # Using the converted .csv map file (now self.room_list) + self.ow_posX + self.ow_posY, return file name of current room
-        roomname = self.room_list[position]
+        cur_row = self.mapdata[positionY]
+        roomname = cur_row[positionX]
         roomname += ".tmx"
         return roomname
 
@@ -172,17 +178,17 @@ class Player():
         self.position_y += 60 * dt * direction_y * 3
        
     def check_edge(self):
-        if self.position_x <= 16:
-            self.game.ow_pos -= 1
+        if self.position_x <= 16: #player approaches left side
+            self.game.ow_posX -= 1
             self.position_x = 1180
-        elif self.position_x >= 1232:
-            self.game.ow_pos += 1
+        elif self.position_x >= 1232: #player approaches right side
+            self.game.ow_posX += 1
             self.position_x = 80
-        elif self.position_y <= 16:
-            self.game.ow_pos -= 3
+        elif self.position_y <= 16: #player approaches top side
+            self.game.ow_posY -= 1
             self.position_y = 880
-        elif self.position_y >= 912:
-            self.game.ow_pos += 3
+        elif self.position_y >= 912: #player approaches bottom side
+            self.game.ow_posY += 1
             self.position_y = 80
        
         
