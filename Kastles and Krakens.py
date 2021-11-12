@@ -25,6 +25,8 @@ class MainGame():
         # player's current position in relation to the overworld, X and Y variables
         self.ow_posX = 2
         self.ow_posY = 1
+        self.cur_ow_pos = [self.ow_posX, self.ow_posY]
+        self.prev_ow_pos = []
         
         self.room = Room()
         
@@ -76,9 +78,18 @@ class MainGame():
                     self.key_d = False
     
     def change_pos(self):
-        self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
-        self.map = TileMap(os.path.join(self.mapid))
-        self.map_image = self.map.load_map() #loads the map into the self.map_image variable
+        ### TO DO:
+        # Add an if/else statement that will check the player's current position
+        # If it doesn't match the player's previous position (moving between rooms), the function will load in a new room
+        # GOAL: reduce CPU usage by avoiding having to constantly reload the exact same room
+        self.cur_ow_pos = [self.ow_posX, self.ow_posY]
+        if self.cur_ow_pos == self.prev_ow_pos:
+            return
+        else:
+            self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
+            self.map = TileMap(os.path.join(self.mapid))
+            self.map_image = self.map.load_map() #loads the map into the self.map_image variable
+        self.prev_ow_pos = self.cur_ow_pos
         
         
     # Source: Christian Duenas - Pygame Framerate Independence
