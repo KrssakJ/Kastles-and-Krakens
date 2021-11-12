@@ -23,8 +23,8 @@ class MainGame():
         self.player = Player(self)
         
         # player's current position in relation to the overworld, X and Y variables
-        self.ow_posX = 1
-        self.ow_posY = 0
+        self.ow_posX = 2
+        self.ow_posY = 1
         
         self.room = Room(self.ow_posX, self.ow_posY)
         
@@ -155,6 +155,7 @@ class Room():
         cur_row = self.mapdata[positionY]
         roomname = cur_row[positionX]
         roomname += ".tmx"
+        ### NOTE: Rooms named void.tmx are an empty void, not meant to be accessible to the player
         return roomname
 
 class Player():
