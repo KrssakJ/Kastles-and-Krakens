@@ -26,7 +26,7 @@ class MainGame():
         self.ow_posX = 2
         self.ow_posY = 1
         
-        self.room = Room(self.ow_posX, self.ow_posY)
+        self.room = Room()
         
         #print(self.ow_pos)
         #self.scr_pos_x = self.game_WIDTH/2
@@ -44,15 +44,16 @@ class MainGame():
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
+                # arrow keys - debug commands (kinda)
                 """
                 if event.key == pygame.K_UP:
-                    self.ow_pos -= 3
+                    self.ow_posY -= 1
                 elif event.key == pygame.K_DOWN:
-                    self.ow_pos += 3
+                    self.ow_posY += 1
                 elif event.key == pygame.K_LEFT:
-                    self.ow_pos -= 1
+                    self.ow_posX -= 1
                 elif event.key == pygame.K_RIGHT:
-                    self.ow_pos += 1
+                    self.ow_posX += 1
                 #print(self.ow_pos)
                 """
                 if event.key == pygame.K_w:
@@ -75,9 +76,6 @@ class MainGame():
                     self.key_d = False
     
     def change_pos(self):
-        ### TO DO:
-        # Split self.ow_pos into self.ow_posX and self.ow_posY
-        
         self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
         self.map = TileMap(os.path.join(self.mapid))
         self.map_image = self.map.load_map() #loads the map into the self.map_image variable
@@ -138,19 +136,12 @@ class TileMap():
         return temp_surface
                 
 class Room():
-    ### TO DO:
-    # Add a hook that will load the .csv map file upon initilization
-    # Futher tasks: get_room()
-    def __init__(self, positionX, positionY):
-        self.positionX = positionX
-        self.positionY = positionY
-#       self.mapid = mapid
+    def __init__(self):
         with open("maplist.csv") as r:
             loaded = csv.reader(r)  # reads the file, returns idk a number?
             self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
         
     def get_room(self, positionX, positionY):
-        ### TO DO:
         # Using the converted .csv map file (now self.room_list) + self.ow_posX + self.ow_posY, return file name of current room
         cur_row = self.mapdata[positionY]
         roomname = cur_row[positionX]
