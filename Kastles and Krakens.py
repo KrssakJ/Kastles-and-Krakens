@@ -192,7 +192,7 @@ class Player(pygame.sprite.Sprite):
         self.position_y = 600
         #self.player_dir = os.path.join("player")
         #self.player_sprite = pygame.image.load(os.path.join(self.player_dir, "player_front1.png")).convert_alpha()
-        self.player_sprite = self.sprite_list[self.spr_list_pos]
+        self.player_sprite = self.sprite_list[self.spr_list_pos] # THIS is what's causing the player to go invisible
         #self.player_sprite.set_colorkey((0,0,0))
         
     
