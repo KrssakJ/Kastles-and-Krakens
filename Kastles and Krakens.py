@@ -1,4 +1,4 @@
-import pygame, pytmx, time, os, csv
+import pygame, pytmx, time, os, csv, json
 
 pygame.init()
 
@@ -87,7 +87,9 @@ class MainGame():
             return
         else:
             self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
-            self.map = TileMap(os.path.join(self.mapid))
+            self.room_dir = os.path.join("room_bgs")
+            self.roomname = os.path.join(self.room_dir, self.mapid)
+            self.map = TileMap(self.roomname)
             self.map_image = self.map.load_map() #loads the map into the self.map_image variable
         self.prev_ow_pos = self.cur_ow_pos
         
@@ -108,7 +110,7 @@ class MainGame():
             #self.main_screen.fill((0,0,0))
             self.main_screen.blit(self.map_image, (0,0))
             self.player.draw_player(self.player.position_x, self.player.position_y)
-            pygame.display.flip()
+            pygame.display.update()
 """
 class Spritesheet():
     def __init__(self, filename):
