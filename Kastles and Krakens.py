@@ -1,4 +1,4 @@
-import pygame, pytmx, time, os, csv, json
+import pygame, pytmx, time, os, csv, json, math
 
 pygame.init()
 
@@ -215,10 +215,12 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, game):
         super().__init__()
         self.game = game
-        self.position_x = 624
-        self.position_y = 600
+        #self.position_x = 624
+        #self.position_y = 600
         self.load_frames()
         self.rect = self.image.get_rect()
+        #self.rect.topleft = (self.position_x, self.position_y)
+        self.rect.center = (624, 600)
         self.prev_time = 0
         self.state_idle = True
         self.direction_x = 0
@@ -262,7 +264,8 @@ class Player(pygame.sprite.Sprite):
         self.animate(dt)
         self.size = self.image.get_size()
         self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
-        self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
+        self.image = self.bigger_sprite
+        #self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
 
     def set_state(self):
         # Detects whether the player is moving or not
@@ -301,26 +304,33 @@ class Player(pygame.sprite.Sprite):
         self.direction_x = self.game.key_d - self.game.key_a
         self.direction_y = self.game.key_s - self.game.key_w
         
-        self.position_x += 60 * dt * self.direction_x * 3
-        self.position_y += 60 * dt * self.direction_y * 3
+        #speed = 3
+        #if self.direction_x != 0 and self.direction_y != 0:
+        #    speed = 3 * math.sqrt(2)
+
+        self.rect.x += self.direction_x * 3
+        self.rect.y += self.direction_y * 3
+
+        #self.position_x += 60 * dt * self.direction_x * 3
+        #self.position_y += 60 * dt * self.direction_y * 3
         
         self.check_edge()
 
     def check_edge(self):
         ### TO DO:
         # Check the player's position using the self.rect variable
-        if self.position_x <= 16: #player approaches left side
+        if self.rect.x <= 16: #player approaches left side
             self.game.ow_posX -= 1
-            self.position_x = 1180
-        elif self.position_x >= 1232: #player approaches right side
+            self.rect.x = 1180
+        elif self.rect.x >= 1232: #player approaches right side
             self.game.ow_posX += 1
-            self.position_x = 80
-        elif self.position_y <= 16: #player approaches top side
+            self.rect.x = 80
+        elif self.rect.y <= 16: #player approaches top side
             self.game.ow_posY -= 1
-            self.position_y = 880
-        elif self.position_y >= 912: #player approaches bottom side
+            self.rect.y = 880
+        elif self.rect.y >= 912: #player approaches bottom side
             self.game.ow_posY += 1
-            self.position_y = 80
+            self.rect.y = 80
        
         
 """   
