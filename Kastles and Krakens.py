@@ -19,7 +19,8 @@ class MainGame():
         self.key_a = False
         self.key_s = False
         self.key_d = False
-        
+        self.key_p = False
+
         self.player = Player(self)
         
         # player's current position in relation to the overworld, X and Y variables
@@ -69,6 +70,8 @@ class MainGame():
                     self.key_s = True
                 elif event.key == pygame.K_d:
                     self.key_d = True
+                elif event.key == pygame.K_p:
+                    self.player.spr_update()
                 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
@@ -79,6 +82,8 @@ class MainGame():
                     self.key_s = False
                 elif event.key == pygame.K_d:
                     self.key_d = False
+                elif event.key == pygame.K_p:
+                    self.key_p = False
     
     def change_pos(self):
         ### TO DO:
@@ -215,21 +220,19 @@ class Player(pygame.sprite.Sprite):
         
         
         self.spritesheet = Spritesheet("player_sprites.png")
-        self.sprite_list = [self.spritesheet.parse_sprite("player_front1.png"), self.spritesheet.parse_sprite("player_front2.png"), self.spritesheet.parse_sprite("player_front3.png"), self.spritesheet.parse_sprite("player_front4.png")]
-        print(self.sprite_list)
+        self.sprite_list_down = [self.spritesheet.parse_sprite("player_front1.png"), self.spritesheet.parse_sprite("player_front2.png"), self.spritesheet.parse_sprite("player_front3.png"), self.spritesheet.parse_sprite("player_front4.png")]
+        #print(self.sprite_list_down)
         self.spr_list_pos = 0
-        
-        ## TEMPORARY, will delete once spritesheet has been added
+        self.image = self.sprite_list_down[self.spr_list_pos]
+        ## TEMPORARY, will delete once spritesheet has been fully implemented
         #self.player_dir = os.path.join("player")
         #self.image = pygame.image.load(os.path.join(self.player_dir, "player_front1.png")).convert_alpha()
         #self.player_image = self.sprite_list[0]
         
         
-        ## First part works fine
-        #self.image = self.spritesheet.get_sprite(64,0,16,16)
+        
 
-        ## The get_sprite function works with the self.image variable, the problem is the parse_sprite function
-        self.image = self.sprite_list[0]
+        
         #print(self.curspr)
         
         self.rect = self.image.get_rect()
@@ -243,14 +246,16 @@ class Player(pygame.sprite.Sprite):
         self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
         self.move()
         self.check_edge()
+        #self.spr_update()
         self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
         
-        
-        
-        
-        
-    
-    
+    def spr_update(self):
+        #print("hey you're pressing p!")
+        self.spr_list_pos = (self.spr_list_pos + 1) % len(self.sprite_list_down)
+        self.image = self.sprite_list_down[self.spr_list_pos]
+
+
+
     # Source: Christian Duenas - Pygame Game States Tutorial
     # https://www.youtube.com/watch?v=b_DkQrJxpck
     def move(self):
