@@ -123,9 +123,10 @@ class Spritesheet():
         # Currently only works if every sprite has their individual folder with their spritesheet
         # May need to create a single, fixed folder that contains EVERY spritesheet in the game
         self.filename = filename
+        self.jsonfilename = self.filename.replace("png","json")
         self.sprite_dir = os.path.join("spritesheets")
         self.sprite_sheet = pygame.image.load(os.path.join(self.sprite_dir, self.filename)).convert()
-        self.meta_data = self.filename.replace("png","json")
+        self.meta_data = os.path.join(self.sprite_dir, self.jsonfilename)
         with open(self.meta_data) as f:
             self.data = json.load(f)
         f.close()
