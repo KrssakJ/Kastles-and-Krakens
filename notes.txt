@@ -1,0 +1,30 @@
+Visual Studio Code
+https://code.visualstudio.com/docs/python/python-tutorial
+Getting Started with Python in VS Code
+
+1. Install the Python extension for VS Code
+
+2. Create and activate the virtual environment
+A best practice among Python developers is to avoid installing packages into a global interpreter environment. 
+You instead use a project-specific virtual environment that contains a copy of a global interpreter. 
+Once you activate that environment, any packages you then install are isolated from other environments. 
+Such isolation reduces many complications that can arise from conflicting package versions.
+
+- For Windows
+py -3 -m venv .venv
+.venv\scripts\activate
+
+If the activate command generates the message "Activate.ps1 is not digitally signed. You cannot run this script on the current system.", 
+then you need to temporarily change the PowerShell execution policy to allow scripts to run.
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+
+3. Install packages
+python -m pip install pygame
+python -m pip install pytmx
+
+Optional (in case of WARNING: You are using pip version 20.1.1; however, version 21.3.1 is available.)
+python -m pip install --upgrade pip
+
+3. Linting Python
+python -m pip install -U pylint

@@ -1,0 +1,5 @@
+# Python local virtual environment installation
+.venv
+
+# Visual Studio Code Workspace settings
+.vscode
