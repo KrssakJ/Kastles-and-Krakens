@@ -218,8 +218,6 @@ class Player(pygame.sprite.Sprite):
         print(self.sprite_list)
         self.spr_list_pos = 0
         
-        
-        
         ## TEMPORARY, will delete once spritesheet has been added
         #self.player_dir = os.path.join("player")
         #self.image = pygame.image.load(os.path.join(self.player_dir, "player_front1.png")).convert_alpha()
@@ -228,7 +226,9 @@ class Player(pygame.sprite.Sprite):
         
         ## First part works fine
         #self.image = self.spritesheet.get_sprite(64,0,16,16)
-        self.image = self.sprite_list[1]
+
+        ## The get_sprite function works with the self.image variable, the problem is the parse_sprite function
+        self.image = self.sprite_list[0]
         #print(self.curspr)
         
         self.rect = self.image.get_rect()
