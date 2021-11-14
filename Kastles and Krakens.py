@@ -1,4 +1,4 @@
-import pygame, pytmx, time, os, csv
+import pygame, pytmx, time, os, csv, json
 
 pygame.init()
 
@@ -29,6 +29,9 @@ class MainGame():
         self.prev_ow_pos = []
         
         self.room = Room()
+        
+        self.game_sprites = pygame.sprite.Group()
+        self.game_sprites.add(self.player)
         
         #print(self.ow_pos)
         #self.scr_pos_x = self.game_WIDTH/2
@@ -87,7 +90,9 @@ class MainGame():
             return
         else:
             self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
-            self.map = TileMap(os.path.join(self.mapid))
+            self.room_dir = os.path.join("room_bgs")
+            self.roomname = os.path.join(self.room_dir, self.mapid)
+            self.map = TileMap(self.roomname)
             self.map_image = self.map.load_map() #loads the map into the self.map_image variable
         self.prev_ow_pos = self.cur_ow_pos
         
@@ -107,21 +112,43 @@ class MainGame():
             self.get_dt()
             #self.main_screen.fill((0,0,0))
             self.main_screen.blit(self.map_image, (0,0))
-            self.player.draw_player(self.player.position_x, self.player.position_y)
+            self.game_sprites.update()
+            self.game_sprites.draw(self.main_screen)
+            #self.player.draw_player(self.player.position_x, self.player.position_y)
             pygame.display.flip()
-"""
+
 class Spritesheet():
     def __init__(self, filename):
+        ### TO DO:
+        # Currently only works if every sprite has their individual folder with their spritesheet
+        # May need to create a single, fixed folder that contains EVERY spritesheet in the game
         self.filename = filename
-        self.sprite_sheet = pygame.image.load(filename).convert()
+        self.sprite_dir = os.path.join("spritesheets")
+        self.sprite_sheet = pygame.image.load(os.path.join(self.sprite_dir, self.filename)).convert()
+        self.meta_data = self.filename.replace("png","json")
+        with open(self.meta_data) as f:
+            self.data = json.load(f)
+        f.close()
 
     def get_sprite(self, x, y, width, height):
+        # Draws the sprite on a small surface
         sprite = pygame.Surface((width, height))
         # alfa kanal pro sprite
         sprite.set_colorkey((0,0,0))
         sprite.blit(self.sprite_sheet, (0,0), (x,y,width,height))
-        return sprite       
-"""
+        return sprite
+        
+    def parse_sprite(self, name):
+        # Cuts out the sprite image from the spritesheet
+        # Returns the image
+        sprite = self.data["frames"][name]["frame"]
+        x = sprite["x"]
+        y = sprite["y"]
+        width = sprite["w"]
+        height = sprite["h"]
+        image = self.get_sprite(x, y, width, height)
+        return image
+
         
 # Source: KidsCanCode - Tile-based game part 12: Loading Tiled Maps
 # https://www.youtube.com/watch?v=QIXyj3WeyZM
@@ -154,26 +181,79 @@ class Room():
         
     def get_room(self, positionX, positionY):
         # Using the converted .csv map file (now self.room_list) + self.ow_posX + self.ow_posY, return file name of current room
+        # NOTE: Getting the data directly using multiple [] parentheses causes a small bit of lag
         cur_row = self.mapdata[positionY]
         roomname = cur_row[positionX]
         roomname += ".tmx"
         ### NOTE: Rooms named void.tmx are an empty void, not meant to be accessible to the player
         return roomname
+"""
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = "player_front1.png"
+        self.rect = self.image.get_rect()
+        self.rect.center = (WIDTH/2, HEIGHT/2)
 
-class Player():
+    def update(self):
+        self.rect.x += 5
+"""
+
+
+
+
+class Player(pygame.sprite.Sprite):
+    ### TO DO:
+    # The player is invisible for some reason idk why (but the position still updates)
+    # Create an update() function that will handle movement and sprite updates (must-have for sprites and sprite groups)
     def __init__(self, game):
+        super().__init__()
         self.game = game
         self.position_x = 624
         self.position_y = 600
-        self.player_dir = os.path.join("player")
-        self.player_sprite = pygame.image.load(os.path.join(self.player_dir, "player_front1.png")).convert_alpha()
+        
+        
+        self.spritesheet = Spritesheet("player_sprites.png")
+        self.sprite_list = [self.spritesheet.parse_sprite("player_front1.png"), self.spritesheet.parse_sprite("player_front2.png"), self.spritesheet.parse_sprite("player_front3.png"), self.spritesheet.parse_sprite("player_front4.png")]
+        print(self.sprite_list)
+        self.spr_list_pos = 0
+        
+        
+        
+        ## TEMPORARY, will delete once spritesheet has been added
+        #self.player_dir = os.path.join("player")
+        #self.image = pygame.image.load(os.path.join(self.player_dir, "player_front1.png")).convert_alpha()
+        #self.player_image = self.sprite_list[0]
+        
+        
+        ## First part works fine
+        #self.image = self.spritesheet.get_sprite(64,0,16,16)
+        self.image = self.sprite_list[1]
+        #print(self.curspr)
+        
+        self.rect = self.image.get_rect()
+        
+        
+        
         #self.player_sprite.set_colorkey((0,0,0))
+        
+    def update(self):
+        self.size = self.image.get_size()
+        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
+        self.move()
+        self.check_edge()
+        self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
+        
+        
+        
+        
         
     
     
     # Source: Christian Duenas - Pygame Game States Tutorial
     # https://www.youtube.com/watch?v=b_DkQrJxpck
-    def move(self, dt):
+    def move(self):
+        dt = self.game.dt
         direction_x = self.game.key_d - self.game.key_a
         direction_y = self.game.key_s - self.game.key_w
         
@@ -195,16 +275,23 @@ class Player():
             self.position_y = 80
        
         
-    
+"""   
     def draw_player(self, localx, localy):
-        dt = self.game.dt
-        self.size = self.player_sprite.get_size()
-        self.bigger_sprite = pygame.transform.scale(self.player_sprite, (self.size[0]*3, self.size[1]*3))
-        current_pos = self.move(dt)
+        #dt = self.game.dt
+        self.size = self.image.get_size()
+        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
+        self.move()
         self.check_edge()
-        player_image = self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
+        self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
+"""
 
 
+
+
+
+
+#class NPC():
+# yeah, let's come back to this LATER
 
 
 
