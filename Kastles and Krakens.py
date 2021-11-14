@@ -268,28 +268,30 @@ class Player(pygame.sprite.Sprite):
         # Detects whether the player is moving or not
         if self.direction_x != 0 or self.direction_y != 0:
             self.state_idle = False
-            print("player is moving")
+            #print("player is moving")
         else:
             self.state_idle = True
-            print("player is idle")
+            #print("player is idle")
 
     def animate(self, dt):
         # Updates the current frame variable based on delta_time
-        
-        now = pygame.time.get_ticks()
-        if now - self.prev_time > 200:
-            self.prev_time = now
-            self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
-        
-            # Chooses list of frames based on where the player is facing
-        if self.direction_x > 0:
-            self.cur_sprlist = self.frames_right
-        elif self.direction_x < 0:
-            self.cur_sprlist = self.frames_left
-        elif self.direction_y > 0:
-            self.cur_sprlist = self.frames_down
-        elif self.direction_y < 0:
-            self.cur_sprlist = self.frames_up
+        if self.state_idle:
+            self.cur_frame = 0
+        else:
+            now = pygame.time.get_ticks()
+            if now - self.prev_time > 200:
+                self.prev_time = now
+                self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
+            
+                # Chooses list of frames based on where the player is facing
+            if self.direction_x > 0:
+                self.cur_sprlist = self.frames_right
+            elif self.direction_x < 0:
+                self.cur_sprlist = self.frames_left
+            elif self.direction_y > 0:
+                self.cur_sprlist = self.frames_down
+            elif self.direction_y < 0:
+                self.cur_sprlist = self.frames_up
         self.image = self.cur_sprlist[self.cur_frame]
 
     # Source: Christian Duenas - Pygame Game States Tutorial
