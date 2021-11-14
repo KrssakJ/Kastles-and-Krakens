@@ -217,56 +217,95 @@ class Player(pygame.sprite.Sprite):
         self.game = game
         self.position_x = 624
         self.position_y = 600
-        
-        
-        self.spritesheet = Spritesheet("player_sprites.png")
-        self.sprite_list_down = [self.spritesheet.parse_sprite("player_front1.png"), self.spritesheet.parse_sprite("player_front2.png"), self.spritesheet.parse_sprite("player_front3.png"), self.spritesheet.parse_sprite("player_front4.png")]
-        #print(self.sprite_list_down)
-        self.spr_list_pos = 0
-        self.image = self.sprite_list_down[self.spr_list_pos]
-        ## TEMPORARY, will delete once spritesheet has been fully implemented
-        #self.player_dir = os.path.join("player")
-        #self.image = pygame.image.load(os.path.join(self.player_dir, "player_front1.png")).convert_alpha()
-        #self.player_image = self.sprite_list[0]
-        
-        
-        
-
-        
-        #print(self.curspr)
-        
+        self.load_frames()
         self.rect = self.image.get_rect()
+        self.prev_time = 0
+        self.state_idle = True
+        self.direction_x = 0
+        self.direction_y = 0
+        
+        self.cur_sprlist = self.frames_down
+
+    def load_frames(self):
+        self.spritesheet = Spritesheet("player_sprites.png")
+        self.frames_down = [self.spritesheet.parse_sprite("player_front1.png"), self.spritesheet.parse_sprite("player_front2.png"), self.spritesheet.parse_sprite("player_front3.png"), self.spritesheet.parse_sprite("player_front4.png")]
+        self.frames_up = [self.spritesheet.parse_sprite("player_back1.png"), self.spritesheet.parse_sprite("player_back2.png"), self.spritesheet.parse_sprite("player_back3.png"), self.spritesheet.parse_sprite("player_back4.png")]
+        self.frames_left = [self.spritesheet.parse_sprite("player_left1.png"), self.spritesheet.parse_sprite("player_left2.png"), self.spritesheet.parse_sprite("player_left3.png"), self.spritesheet.parse_sprite("player_left4.png")]
+        self.frames_right = [self.spritesheet.parse_sprite("player_right1.png"), self.spritesheet.parse_sprite("player_right2.png"), self.spritesheet.parse_sprite("player_right3.png"), self.spritesheet.parse_sprite("player_right4.png")]
+        #print(self.frames_down)
+        self.cur_frame = 0
+        self.image = self.frames_down[self.cur_frame]
         
         
         
-        #self.player_sprite.set_colorkey((0,0,0))
         
+        
+        
+    
+    
+    
     def update(self):
-        self.size = self.image.get_size()
-        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
-        self.move()
-        self.check_edge()
+        dt = self.game.dt
+        self.draw_player(dt)
+        self.move(dt)
+        
         #self.spr_update()
-        self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
+        
         
     def spr_update(self):
         #print("hey you're pressing p!")
-        self.spr_list_pos = (self.spr_list_pos + 1) % len(self.sprite_list_down)
-        self.image = self.sprite_list_down[self.spr_list_pos]
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames_down)
+        self.image = self.frames_down[self.cur_frame]
 
+    def draw_player(self, dt):
+        self.set_state()
+        self.animate(dt)
+        self.size = self.image.get_size()
+        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
+        self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
 
+    def set_state(self):
+        # Detects whether the player is moving or not
+        if self.direction_x != 0 or self.direction_y != 0:
+            self.state_idle = False
+            print("player is moving")
+        else:
+            self.state_idle = True
+            print("player is idle")
+
+    def animate(self, dt):
+        # Updates the current frame variable based on delta_time
+        
+        now = pygame.time.get_ticks()
+        if now - self.prev_time > 200:
+            self.prev_time = now
+            self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
+        
+            # Chooses list of frames based on where the player is facing
+        if self.direction_x > 0:
+            self.cur_sprlist = self.frames_right
+        elif self.direction_x < 0:
+            self.cur_sprlist = self.frames_left
+        elif self.direction_y > 0:
+            self.cur_sprlist = self.frames_down
+        elif self.direction_y < 0:
+            self.cur_sprlist = self.frames_up
+        self.image = self.cur_sprlist[self.cur_frame]
 
     # Source: Christian Duenas - Pygame Game States Tutorial
     # https://www.youtube.com/watch?v=b_DkQrJxpck
-    def move(self):
-        dt = self.game.dt
-        direction_x = self.game.key_d - self.game.key_a
-        direction_y = self.game.key_s - self.game.key_w
+    def move(self, dt):
+        self.direction_x = self.game.key_d - self.game.key_a
+        self.direction_y = self.game.key_s - self.game.key_w
         
-        self.position_x += 60 * dt * direction_x * 3
-        self.position_y += 60 * dt * direction_y * 3
-       
+        self.position_x += 60 * dt * self.direction_x * 3
+        self.position_y += 60 * dt * self.direction_y * 3
+        
+        self.check_edge()
+
     def check_edge(self):
+        ### TO DO:
+        # Check the player's position using the self.rect variable
         if self.position_x <= 16: #player approaches left side
             self.game.ow_posX -= 1
             self.position_x = 1180
