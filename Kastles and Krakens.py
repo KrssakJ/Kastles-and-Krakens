@@ -274,10 +274,11 @@ class Player(pygame.sprite.Sprite):
             #print("player is idle")
 
     def animate(self, dt):
-        # Updates the current frame variable based on delta_time
+        # If the player is idle, the program doesn't iterate through the list of frames
         if self.state_idle:
             self.cur_frame = 0
         else:
+            # Updates the current frame variable based on delta_time
             now = pygame.time.get_ticks()
             if now - self.prev_time > 200:
                 self.prev_time = now
