@@ -94,34 +94,49 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         if self.cur_ow_pos == self.prev_ow_pos:
             return
-        self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
-        
-
-        self.room_dir = os.path.join("room_bgs")
-        self.roomname = os.path.join(self.room_dir, self.mapid)
-        self.map = TileMap(self.roomname)
-        self.map_image = self.map.load_map() #loads the map into the self.map_image variable
+        self.map_image = self.room_list[self.ow_posY][self.ow_posX]
         self.prev_ow_pos = self.cur_ow_pos
         
+
+        #self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
+        
+
+        #self.room_dir = os.path.join("room_bgs")
+        #self.roomname = os.path.join(self.room_dir, self.mapid)
+        #self.map = TileMap(self.roomname)
+        #self.map_image = self.map.load_map() #loads the map into the self.map_image variable
+        #self.prev_ow_pos = self.cur_ow_pos
+        
     def load_rooms(self):
+        # Basic setup, will use all of these later
         room_list = []
-        row_pos = 0
         self.room_dir = os.path.join("room_bgs")
+
+        # Void needs to be loaded in separately, to reduce memory usage (from 141MB to 70MB)
+        self.voidname = os.path.join(self.room_dir, "void.tmx")
+        self.void = TileMap(self.voidname)
+        self.void_image = self.void.load_map()
+
         for f in self.room.mapdata:
             print(f)
             rowlist = []
             # f variable is a list, we need a way to cycle through each row
             for r in f:
-                print(r)
+                #print(r)
                 # r variable should be the specific room
-                #self.roomname = os.path.join(self.room_dir, r)
-                #self.map = TileMap(self.roomname)
-                #self.map_image = self.map.load_map()
-                rowlist.append(r)
+                if r == "void":
+                    rowlist.append(self.void_image)
+                else:
+                    r += ".tmx"
+                    self.roomname = os.path.join(self.room_dir, r)
+                    self.map = TileMap(self.roomname)
+                    self.map_image = self.map.load_map()
+                    rowlist.append(self.map_image)
             room_list.append(rowlist)
         self.row_length = len(rowlist)
         print(self.row_length)
         print(room_list)
+        return room_list
 
 
     # Source: Christian Duenas - Pygame Framerate Independence
