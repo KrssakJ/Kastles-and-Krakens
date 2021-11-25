@@ -1,4 +1,4 @@
-import pygame, pytmx, time, os, csv, json, math
+import pygame, pytmx, time, os, csv, json
 
 pygame.init()
 
@@ -30,7 +30,8 @@ class MainGame():
         self.prev_ow_pos = []
         
         self.room = Room()
-        
+        self.room_list = self.load_rooms()
+
         self.game_sprites = pygame.sprite.Group()
         self.game_sprites.add(self.player)
         
@@ -93,15 +94,36 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         if self.cur_ow_pos == self.prev_ow_pos:
             return
-        else:
-            self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
-            self.room_dir = os.path.join("room_bgs")
-            self.roomname = os.path.join(self.room_dir, self.mapid)
-            self.map = TileMap(self.roomname)
-            self.map_image = self.map.load_map() #loads the map into the self.map_image variable
+        self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
+        
+
+        self.room_dir = os.path.join("room_bgs")
+        self.roomname = os.path.join(self.room_dir, self.mapid)
+        self.map = TileMap(self.roomname)
+        self.map_image = self.map.load_map() #loads the map into the self.map_image variable
         self.prev_ow_pos = self.cur_ow_pos
         
-        
+    def load_rooms(self):
+        room_list = []
+        row_pos = 0
+        self.room_dir = os.path.join("room_bgs")
+        for f in self.room.mapdata:
+            print(f)
+            rowlist = []
+            # f variable is a list, we need a way to cycle through each row
+            for r in f:
+                print(r)
+                # r variable should be the specific room
+                #self.roomname = os.path.join(self.room_dir, r)
+                #self.map = TileMap(self.roomname)
+                #self.map_image = self.map.load_map()
+                rowlist.append(r)
+            room_list.append(rowlist)
+        self.row_length = len(rowlist)
+        print(self.row_length)
+        print(room_list)
+
+
     # Source: Christian Duenas - Pygame Framerate Independence
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
     def get_dt(self):
@@ -193,6 +215,9 @@ class Room():
         roomname += ".tmx"
         ### NOTE: Rooms named void.tmx are an empty void, not meant to be accessible to the player
         return roomname
+    
+
+
 """
 class Player(pygame.sprite.Sprite):
     def __init__(self):
