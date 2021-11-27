@@ -142,9 +142,9 @@ class MainGame():
             
         self.row_length = len(rowlist)
         #print(self.row_length)
-        print(self.room.mapdata)
+        #print(self.room.mapdata)
         #print(room_list)
-        print(self.wall_list)
+        #print(self.wall_list)
         return room_list
 
     # Source: Christian Duenas - Pygame Framerate Independence
@@ -223,7 +223,7 @@ class TileMap():
         tilecommand = self.tmxdata.get_tile_image_by_gid
         for layer in self.tmxdata.visible_layers:
             if isinstance(layer, pytmx.TiledObjectGroup):
-                print("I'm in the collisions layer!")
+                #print("I'm in the collisions layer!")
                 for object in self.tmxdata.objects:
                     # object properties: id (integer); name,type (strings); x,y,width,height (floats)
                     #print("I found an object! It's a " + object.type + " and has a width of " + str(object.width))
@@ -290,9 +290,9 @@ class Player(pygame.sprite.Sprite):
         #self.position_x = 624
         #self.position_y = 600
         self.load_frames()
-        self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect(center = (624,600))
         #self.rect.topleft = (self.position_x, self.position_y)
-        self.rect.center = (624, 600)
+        #self.rect.center = (624, 600)
         self.prev_time = 0
         self.state_idle = True
         self.direction_x = 0
@@ -313,6 +313,7 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         # The dt is actually kind of useless, should I get rid of it?
         dt = self.game.dt
+        self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
         self.draw_player(dt)
         self.move(dt)
         
@@ -366,40 +367,73 @@ class Player(pygame.sprite.Sprite):
     # Source: Christian Duenas - Pygame Game States Tutorial
     # https://www.youtube.com/watch?v=b_DkQrJxpck
     def move(self, dt):
+        ### TO DO:
+        # Separate check_walls function into check_walls_x and check_walls_y
+        # Okay so apparently separating the X and Y axis WORKED?
+        # Now I just need to figure out why the player slides off of walls for some reason
         self.direction_x = self.game.key_d - self.game.key_a
         self.direction_y = self.game.key_s - self.game.key_w
-        self.check_walls()
-
-        #speed = 3
-        #if self.direction_x != 0 and self.direction_y != 0:
-        #    speed = 3 * math.sqrt(2)
+        
 
         self.rect.x += self.direction_x * 3
-        self.rect.y += self.direction_y * 3
+        self.check_wallsX()
 
-        #self.position_x += 60 * dt * self.direction_x * 3
-        #self.position_y += 60 * dt * self.direction_y * 3
+        self.rect.y += self.direction_y * 3
+        self.check_wallsY()
+
         
+        
+        #self.check_walls()
         self.check_edge()
+
+    def check_wallsX(self):
+        for wall in self.cur_room:
+            if self.rect.colliderect(wall):
+                if self.direction_x > 0:
+                    print("collision right side")
+                    self.rect.x = wall.left
+                else:
+                    print("collision left side")
+                    self.rect.x = wall.right
+
+    def check_wallsY(self):
+        for wall in self.cur_room:
+            if self.rect.colliderect(wall):
+                if self.direction_y > 0:
+                    print("collision bottom side")
+                    self.rect.y = wall.top
+                else:
+                    print("collision top side")
+                    self.rect.y = wall.bottom
+
 
     def check_walls(self):
         cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
+        #print(cur_room)
         for wall in cur_room:
             #print(wall)
             if self.rect.colliderect(wall):
                 if self.direction_x > 0:
-                    self.rect.x = wall.rect.left
+                    print("collision right side")
+                    self.rect.x = wall.left - 32
+                    #self.rect.x -= 3
+                    #self.direction_x = -self.direction_x
                 elif self.direction_x < 0:
-                    self.rect.x = wall.rect.right
+                    self.rect.x = wall.right + 32
+                    #self.rect.x += 3
+                    #self.direction_x = -self.direction_x
+                    print("collision left side")
                 elif self.direction_y > 0:
-                    self.rect.y = wall.rect.top
+                    self.rect.y = wall.top - 32
+                    #self.rect.y -= 3
+                    #self.direction_y = -self.direction_y
+                    print("collision bottom side")
                 elif self.direction_y < 0:
-                    self.rect.y = wall.rect.bottom
-
-                
-                #print("you touched a wall!")
-
-        return
+                    #self.direction_y = -self.direction_y
+                    self.rect.y = wall.bottom + 32
+                    #self.rect.y += 3
+                    print("collision top side")
+                #print("you touched a wall!")"
 
     def check_edge(self):
         ### TO DO:
