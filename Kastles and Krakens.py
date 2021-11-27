@@ -110,6 +110,7 @@ class MainGame():
     def load_rooms(self):
         # Basic setup, will use all of these later
         room_list = []
+        self.wall_list = []
         self.room_dir = os.path.join("room_bgs")
 
         # Void needs to be loaded in separately, to reduce memory usage (from 141MB to 70MB)
@@ -118,26 +119,33 @@ class MainGame():
         self.void_image = self.void.load_map()
 
         for f in self.room.mapdata:
-            print(f)
+            #print(f)
             rowlist = []
+            wall_rowlist = []
             # f variable is a list, we need a way to cycle through each row
             for r in f:
-                #print(r)
                 # r variable should be the specific room
                 if r == "void":
                     rowlist.append(self.void_image)
+                    wall_rowlist.append(self.void.wall_list)
                 else:
                     r += ".tmx"
                     self.roomname = os.path.join(self.room_dir, r)
                     self.map = TileMap(self.roomname)
                     self.map_image = self.map.load_map()
+                    #print(self.map.wall_list)
+                    wall_rowlist.append(self.map.wall_list)
+                    
                     rowlist.append(self.map_image)
             room_list.append(rowlist)
+            self.wall_list.append(wall_rowlist)
+            
         self.row_length = len(rowlist)
-        print(self.row_length)
-        print(room_list)
+        #print(self.row_length)
+        print(self.room.mapdata)
+        #print(room_list)
+        print(self.wall_list)
         return room_list
-
 
     # Source: Christian Duenas - Pygame Framerate Independence
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
@@ -192,12 +200,20 @@ class Spritesheet():
         image = self.get_sprite(x, y, width, height)
         return image
 
+class Wall():
+    def __init__(self, pos_x, pos_y, width, height):
+        self.hitbox = pygame.Rect(pos_x, pos_y, width, height)
         
+        print("I made a wall!")
+        
+        
+
 # Source: KidsCanCode - Tile-based game part 12: Loading Tiled Maps
 # https://www.youtube.com/watch?v=QIXyj3WeyZM
 class TileMap():
     # Pytmx podporuje nepozmenene spritesheets, lze pouzit puvodni upravenou mapu, zatez na CPU je vicemene stejna
     def __init__(self, mapfile):
+        self.wall_list = []
         tm = pytmx.load_pygame(mapfile, pixelalpha = True)
         self.width = tm.width * tm.tilewidth
         self.height = tm.height * tm.tileheight
@@ -206,16 +222,37 @@ class TileMap():
     def render_map(self, surface):
         tilecommand = self.tmxdata.get_tile_image_by_gid
         for layer in self.tmxdata.visible_layers:
-            if isinstance(layer, pytmx.TiledTileLayer):
+            if isinstance(layer, pytmx.TiledObjectGroup):
+                print("I'm in the collisions layer!")
+                for object in self.tmxdata.objects:
+                    # object properties: id (integer); name,type (strings); x,y,width,height (floats)
+                    #print("I found an object! It's a " + object.type + " and has a width of " + str(object.width))
+                    #print("Double width: " + str(object.width*2))
+                    #print("it has an id " + str(object.id))
+
+                    if object.type == "wall":
+                        temp_rect = pygame.Rect(object.x, object.y, object.width, object.height)
+                        self.wall_list.append(temp_rect)
+                
+                #if layer == "collisions":
+                
+                    #for x, y, width, height, tile in layer:
+                    #    wall = Wall(x, y, width, height)
+                    #    self.wall_list.append(wall) 
+            
+            elif isinstance(layer, pytmx.TiledTileLayer):
                 for x, y, gid in layer:
                     tile = tilecommand(gid)
                     if tile:
                         surface.blit(tile, (x*self.tmxdata.tilewidth, y*self.tmxdata.tileheight))
+        #print(self.wall_list)
     def load_map(self):
         temp_surface = pygame.Surface((self.width, self.height))
         self.render_map(temp_surface)
         return temp_surface
-                
+
+
+
 class Room():
     def __init__(self):
         with open("maplist.csv") as r:
@@ -231,8 +268,6 @@ class Room():
         ### NOTE: Rooms named void.tmx are an empty void, not meant to be accessible to the player
         return roomname
     
-
-
 """
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -245,13 +280,10 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += 5
 """
 
-
-
-
 class Player(pygame.sprite.Sprite):
     ### TO DO:
-    # The player is invisible for some reason idk why (but the position still updates)
-    # Create an update() function that will handle movement and sprite updates (must-have for sprites and sprite groups)
+    # As part of the move or check edge function, check if the player is touching a wall
+    # If the movement would result in the player moving into a wall, cancel the movement
     def __init__(self, game):
         super().__init__()
         self.game = game
@@ -277,16 +309,9 @@ class Player(pygame.sprite.Sprite):
         #print(self.frames_down)
         self.cur_frame = 0
         self.image = self.frames_down[self.cur_frame]
-        
-        
-        
-        
-        
-        
-    
-    
     
     def update(self):
+        # The dt is actually kind of useless, should I get rid of it?
         dt = self.game.dt
         self.draw_player(dt)
         self.move(dt)
@@ -343,7 +368,8 @@ class Player(pygame.sprite.Sprite):
     def move(self, dt):
         self.direction_x = self.game.key_d - self.game.key_a
         self.direction_y = self.game.key_s - self.game.key_w
-        
+        self.check_walls()
+
         #speed = 3
         #if self.direction_x != 0 and self.direction_y != 0:
         #    speed = 3 * math.sqrt(2)
@@ -355,6 +381,25 @@ class Player(pygame.sprite.Sprite):
         #self.position_y += 60 * dt * self.direction_y * 3
         
         self.check_edge()
+
+    def check_walls(self):
+        cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
+        for wall in cur_room:
+            #print(wall)
+            if self.rect.colliderect(wall):
+                if self.direction_x > 0:
+                    self.rect.x = wall.rect.left
+                elif self.direction_x < 0:
+                    self.rect.x = wall.rect.right
+                elif self.direction_y > 0:
+                    self.rect.y = wall.rect.top
+                elif self.direction_y < 0:
+                    self.rect.y = wall.rect.bottom
+
+                
+                #print("you touched a wall!")
+
+        return
 
     def check_edge(self):
         ### TO DO:
@@ -371,7 +416,7 @@ class Player(pygame.sprite.Sprite):
         elif self.rect.y >= 912: #player approaches bottom side
             self.game.ow_posY += 1
             self.rect.y = 80
-       
+  
         
 """   
     def draw_player(self, localx, localy):

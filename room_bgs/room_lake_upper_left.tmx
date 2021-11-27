@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="3" nextobjectid="1">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="31">
  <tileset firstgid="1" source="tilesets/!CL_DEMO_32x32.tsx"/>
  <layer id="1" name="Tile Layer 1" width="40" height="30">
   <data encoding="csv">
@@ -69,4 +69,15 @@
 581,582,581,582,581,582,581,582,581,582,581,582,581,582,581,582,0,0,0,0,0,0,0,0,581,582,581,582,581,582,581,582,581,582,581,582,581,582,581,543
 </data>
  </layer>
+ <objectgroup id="3" name="Walls">
+  <object id="1" name="Wall" type="wall" x="0" y="0" width="1280" height="96"/>
+  <object id="2" name="Wall" type="wall" x="0" y="96" width="96" height="864"/>
+  <object id="3" name="Wall" type="wall" x="96" y="864" width="384" height="32"/>
+  <object id="4" name="Wall" type="wall" x="96" y="896" width="416" height="64"/>
+  <object id="5" name="Wall" type="wall" x="768" y="896" width="416" height="64"/>
+  <object id="6" name="Wall" type="wall" x="800" y="864" width="384" height="32"/>
+  <object id="7" name="Wall" type="wall" x="1184" y="800" width="96" height="160"/>
+  <object id="8" name="Wall" type="wall" x="1216" y="96" width="64" height="32"/>
+  <object id="9" name="Wall" type="wall" x="1216" y="768.723" width="64" height="32"/>
+ </objectgroup>
 </map>
