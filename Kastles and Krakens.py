@@ -230,6 +230,7 @@ class TileMap():
                     #print("it has an id " + str(object.id))
 
                     if object.type == "wall":
+                        # The 32px offset is due to the colliderect function - it's based off of the coordinates of the top left corner
                         temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
                 
@@ -423,23 +424,26 @@ class Player(pygame.sprite.Sprite):
     def reset_variables(self):
         self.direction_x, self.direction_y = 0, 0
         
-"""   
-    def draw_player(self, localx, localy):
-        #dt = self.game.dt
-        self.size = self.image.get_size()
-        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
-        self.move()
-        self.check_edge()
-        self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
-"""
 
+class NPC(pygame.sprite.Sprite):
+# you know what I can just copy a bunch of stuff from the player class
+    def __init__(self, game, sourcefile):
+        super().__init__()
+        self.game = game
+        self.sourcefile = sourcefile + "_sprites.png"
 
+        self.load_frames(self.sourcefile)
 
+    def load_frames(self, sourcefile):
+        self.spritesheet = Spritesheet(sourcefile)
+        self.frames_down = [self.spritesheet.parse_sprite(sourcefile + "_front1.png"), self.spritesheet.parse_sprite(sourcefile + "_front2.png"), self.spritesheet.parse_sprite(sourcefile + "_front3.png"), self.spritesheet.parse_sprite(sourcefile + "_front4.png")]
+        self.frames_up = [self.spritesheet.parse_sprite(sourcefile + "_back1.png"), self.spritesheet.parse_sprite(sourcefile + "_back2.png"), self.spritesheet.parse_sprite(sourcefile + "_back3.png"), self.spritesheet.parse_sprite(sourcefile + "_back4.png")]
+        self.frames_left = [self.spritesheet.parse_sprite(sourcefile + "_left1.png"), self.spritesheet.parse_sprite(sourcefile + "_left2.png"), self.spritesheet.parse_sprite(sourcefile + "_left3.png"), self.spritesheet.parse_sprite(sourcefile + "_left4.png")]
+        self.frames_right = [self.spritesheet.parse_sprite(sourcefile + "_right1.png"), self.spritesheet.parse_sprite(sourcefile + "_right2.png"), self.spritesheet.parse_sprite(sourcefile + "_right3.png"), self.spritesheet.parse_sprite(sourcefile + "_right4.png")]
+        self.cur_frame = 0
+        self.image = self.frames_down[self.cur_frame]
 
-
-#class NPC():
-# yeah, let's come back to this LATER
-## alright, we're doing it now
+    def update(self):
 
 
 
