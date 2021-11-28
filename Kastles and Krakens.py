@@ -230,7 +230,7 @@ class TileMap():
                     #print("it has an id " + str(object.id))
 
                     if object.type == "wall":
-                        temp_rect = pygame.Rect(object.x, object.y, object.width, object.height)
+                        temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
                 
                 #if layer == "collisions":
