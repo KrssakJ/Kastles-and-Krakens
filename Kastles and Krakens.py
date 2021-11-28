@@ -316,7 +316,7 @@ class Player(pygame.sprite.Sprite):
         self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
         self.draw_player(dt)
         self.move(dt)
-        
+        #self.reset_variables()
         #self.spr_update()
         
         
@@ -368,9 +368,9 @@ class Player(pygame.sprite.Sprite):
     # https://www.youtube.com/watch?v=b_DkQrJxpck
     def move(self, dt):
         ### TO DO:
-        # Separate check_walls function into check_walls_x and check_walls_y
-        # Okay so apparently separating the X and Y axis WORKED?
-        # Now I just need to figure out why the player slides off of walls for some reason
+        # colliderect's calculations are based on the rect's X and Y coordinates (top left corner)
+        # Need to implement a way to offset this imbalance (temporary fix is to move every wall 32 pixels up and to the left)
+        
         self.direction_x = self.game.key_d - self.game.key_a
         self.direction_y = self.game.key_s - self.game.key_w
         
@@ -381,7 +381,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.y += self.direction_y * 3
         self.check_wallsY()
 
-        
+        #print("X: " + str(self.rect.x) + " and Y: " + str(self.rect.y))
         
         #self.check_walls()
         self.check_edge()
@@ -391,20 +391,20 @@ class Player(pygame.sprite.Sprite):
             if self.rect.colliderect(wall):
                 if self.direction_x > 0:
                     print("collision right side")
-                    self.rect.x = wall.left
-                else:
+                    self.rect.right = wall.left
+                elif self.direction_x < 0:
                     print("collision left side")
-                    self.rect.x = wall.right
+                    self.rect.left = wall.right
 
     def check_wallsY(self):
         for wall in self.cur_room:
             if self.rect.colliderect(wall):
                 if self.direction_y > 0:
                     print("collision bottom side")
-                    self.rect.y = wall.top
-                else:
+                    self.rect.bottom = wall.top
+                elif self.direction_y < 0:
                     print("collision top side")
-                    self.rect.y = wall.bottom
+                    self.rect.top = wall.bottom
 
 
     def check_walls(self):
@@ -450,7 +450,8 @@ class Player(pygame.sprite.Sprite):
         elif self.rect.y >= 912: #player approaches bottom side
             self.game.ow_posY += 1
             self.rect.y = 80
-  
+    def reset_variables(self):
+        self.direction_x, self.direction_y = 0, 0
         
 """   
     def draw_player(self, localx, localy):
