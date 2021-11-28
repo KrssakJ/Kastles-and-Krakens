@@ -30,7 +30,7 @@ class MainGame():
         self.prev_ow_pos = []
         
         self.room = Room()
-        self.room_list = self.load_rooms()
+        self.load_rooms()
 
         self.game_sprites = pygame.sprite.Group()
         self.game_sprites.add(self.player)
@@ -109,7 +109,7 @@ class MainGame():
         
     def load_rooms(self):
         # Basic setup, will use all of these later
-        room_list = []
+        self.room_list = []
         self.wall_list = []
         self.room_dir = os.path.join("room_bgs")
 
@@ -137,15 +137,14 @@ class MainGame():
                     wall_rowlist.append(self.map.wall_list)
                     
                     rowlist.append(self.map_image)
-            room_list.append(rowlist)
+            self.room_list.append(rowlist)
             self.wall_list.append(wall_rowlist)
             
         self.row_length = len(rowlist)
         #print(self.row_length)
         #print(self.room.mapdata)
-        #print(room_list)
+        #print(self.room_list)
         #print(self.wall_list)
-        return room_list
 
     # Source: Christian Duenas - Pygame Framerate Independence
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
@@ -406,35 +405,6 @@ class Player(pygame.sprite.Sprite):
                     print("collision top side")
                     self.rect.top = wall.bottom
 
-
-    def check_walls(self):
-        cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
-        #print(cur_room)
-        for wall in cur_room:
-            #print(wall)
-            if self.rect.colliderect(wall):
-                if self.direction_x > 0:
-                    print("collision right side")
-                    self.rect.x = wall.left - 32
-                    #self.rect.x -= 3
-                    #self.direction_x = -self.direction_x
-                elif self.direction_x < 0:
-                    self.rect.x = wall.right + 32
-                    #self.rect.x += 3
-                    #self.direction_x = -self.direction_x
-                    print("collision left side")
-                elif self.direction_y > 0:
-                    self.rect.y = wall.top - 32
-                    #self.rect.y -= 3
-                    #self.direction_y = -self.direction_y
-                    print("collision bottom side")
-                elif self.direction_y < 0:
-                    #self.direction_y = -self.direction_y
-                    self.rect.y = wall.bottom + 32
-                    #self.rect.y += 3
-                    print("collision top side")
-                #print("you touched a wall!")"
-
     def check_edge(self):
         ### TO DO:
         # Check the player's position using the self.rect variable
@@ -467,9 +437,10 @@ class Player(pygame.sprite.Sprite):
 
 
 
-
 #class NPC():
 # yeah, let's come back to this LATER
+## alright, we're doing it now
+
 
 
 
