@@ -31,10 +31,14 @@ class MainGame():
         
         self.room = Room()
         self.load_rooms()
+        self.load_enemies()
 
         self.game_sprites = pygame.sprite.Group()
         self.game_sprites.add(self.player)
         
+        for i in self.enemy_list:
+            self.game_sprites.add(i)
+
         #print(self.ow_pos)
         #self.scr_pos_x = self.game_WIDTH/2
         #self.scr_pos_y = self.game_HEIGHT/2
@@ -111,6 +115,7 @@ class MainGame():
         # Basic setup, will use all of these later
         self.room_list = []
         self.wall_list = []
+        self.enemy_list = []
         self.room_dir = os.path.join("room_bgs")
 
         # Void needs to be loaded in separately, to reduce memory usage (from 141MB to 70MB)
@@ -122,12 +127,14 @@ class MainGame():
             #print(f)
             rowlist = []
             wall_rowlist = []
+            enemy_rowlist = []
             # f variable is a list, we need a way to cycle through each row
             for r in f:
                 # r variable should be the specific room
                 if r == "void":
                     rowlist.append(self.void_image)
                     wall_rowlist.append(self.void.wall_list)
+                    enemy_rowlist.append([])
                 else:
                     r += ".tmx"
                     self.roomname = os.path.join(self.room_dir, r)
@@ -135,17 +142,26 @@ class MainGame():
                     self.map_image = self.map.load_map()
                     #print(self.map.wall_list)
                     wall_rowlist.append(self.map.wall_list)
-                    
+                    for enemy in self.map.enemy_list:
+                        loaded_enemy = NPC(self, enemy[0], enemy[1], enemy[2], enemy[3], 4)
+                        enemy_rowlist.append(loaded_enemy)
+
                     rowlist.append(self.map_image)
             self.room_list.append(rowlist)
             self.wall_list.append(wall_rowlist)
+            self.enemy_list.append(enemy_rowlist)
             
         self.row_length = len(rowlist)
+
+        
         #print(self.row_length)
         #print(self.room.mapdata)
         #print(self.room_list)
         #print(self.wall_list)
+        print(self.enemy_list)
 
+    def load_enemies(self):
+        return
     # Source: Christian Duenas - Pygame Framerate Independence
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
     def get_dt(self):
@@ -199,11 +215,7 @@ class Spritesheet():
         image = self.get_sprite(x, y, width, height)
         return image
 
-class Wall():
-    def __init__(self, pos_x, pos_y, width, height):
-        self.hitbox = pygame.Rect(pos_x, pos_y, width, height)
-        
-        print("I made a wall!")
+
         
         
 
@@ -213,6 +225,7 @@ class TileMap():
     # Pytmx podporuje nepozmenene spritesheets, lze pouzit puvodni upravenou mapu, zatez na CPU je vicemene stejna
     def __init__(self, mapfile):
         self.wall_list = []
+        self.enemy_list = []
         tm = pytmx.load_pygame(mapfile, pixelalpha = True)
         self.width = tm.width * tm.tilewidth
         self.height = tm.height * tm.tileheight
@@ -222,9 +235,10 @@ class TileMap():
         tilecommand = self.tmxdata.get_tile_image_by_gid
         for layer in self.tmxdata.visible_layers:
             if isinstance(layer, pytmx.TiledObjectGroup):
-                #print("I'm in the collisions layer!")
+                #print("I'm in the object layer!")
                 for object in self.tmxdata.objects:
-                    # object properties: id (integer); name,type (strings); x,y,width,height (floats)
+                    # object properties: id (integer); name,type (strings); x,y,width,height (floats); object.properties (dictionary)
+
                     #print("I found an object! It's a " + object.type + " and has a width of " + str(object.width))
                     #print("Double width: " + str(object.width*2))
                     #print("it has an id " + str(object.id))
@@ -233,7 +247,22 @@ class TileMap():
                         # The 32px offset is due to the colliderect function - it's based off of the coordinates of the top left corner
                         temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
-                
+                    if object.type == "enemy":
+                        enemy_data = []
+                        #print("I found an enemy!")
+                        #self.enemy_list.append(object.properties["enemy_type"])
+                        enemy_data.append(object.properties["enemy_type"])
+                        enemy_data.append(object.x)
+                        enemy_data.append(object.y)
+                        enemy_data.append(object.properties["movement_range"])
+                        
+                        
+                        #if object.properties["enemy_type"] == "red_enemy":
+                            # object.properties is a dictionary that displays pairs of data
+                            #print("I found their enemy type!")
+                            #print("object id: " + str(object.id))
+                        self.enemy_list.append(enemy_data)
+                        print(self.enemy_list)
                 #if layer == "collisions":
                 
                     #for x, y, width, height, tile in layer:
@@ -289,6 +318,7 @@ class Player(pygame.sprite.Sprite):
         self.game = game
         #self.position_x = 624
         #self.position_y = 600
+        self.sourcefile = "player_sprites.png"
         self.load_frames()
         self.rect = self.image.get_rect(center = (624,600))
         #self.rect.topleft = (self.position_x, self.position_y)
@@ -301,7 +331,7 @@ class Player(pygame.sprite.Sprite):
         self.cur_sprlist = self.frames_down
 
     def load_frames(self):
-        self.spritesheet = Spritesheet("player_sprites.png")
+        self.spritesheet = Spritesheet(self.sourcefile)
         self.frames_down = [self.spritesheet.parse_sprite("player_front1.png"), self.spritesheet.parse_sprite("player_front2.png"), self.spritesheet.parse_sprite("player_front3.png"), self.spritesheet.parse_sprite("player_front4.png")]
         self.frames_up = [self.spritesheet.parse_sprite("player_back1.png"), self.spritesheet.parse_sprite("player_back2.png"), self.spritesheet.parse_sprite("player_back3.png"), self.spritesheet.parse_sprite("player_back4.png")]
         self.frames_left = [self.spritesheet.parse_sprite("player_left1.png"), self.spritesheet.parse_sprite("player_left2.png"), self.spritesheet.parse_sprite("player_left3.png"), self.spritesheet.parse_sprite("player_left4.png")]
@@ -309,6 +339,10 @@ class Player(pygame.sprite.Sprite):
         #print(self.frames_down)
         self.cur_frame = 0
         self.image = self.frames_down[self.cur_frame]
+
+
+
+
     
     def update(self):
         # The dt is actually kind of useless, should I get rid of it?
@@ -367,14 +401,11 @@ class Player(pygame.sprite.Sprite):
     # Source: Christian Duenas - Pygame Game States Tutorial
     # https://www.youtube.com/watch?v=b_DkQrJxpck
     def move(self, dt):
-        ### TO DO:
-        # colliderect's calculations are based on the rect's X and Y coordinates (top left corner)
-        # Need to implement a way to offset this imbalance (temporary fix is to move every wall 32 pixels up and to the left)
+        self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
         
         self.direction_x = self.game.key_d - self.game.key_a
         self.direction_y = self.game.key_s - self.game.key_w
         
-
         self.rect.x += self.direction_x * 3
         self.check_wallsX()
 
@@ -421,36 +452,100 @@ class Player(pygame.sprite.Sprite):
         elif self.rect.y >= 912: #player approaches bottom side
             self.game.ow_posY += 1
             self.rect.y = 80
-    def reset_variables(self):
-        self.direction_x, self.direction_y = 0, 0
         
 
 class NPC(pygame.sprite.Sprite):
 # you know what I can just copy a bunch of stuff from the player class
-    def __init__(self, game, sourcefile):
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side):
         super().__init__()
         self.game = game
         self.sourcefile = sourcefile + "_sprites.png"
+        self.load_frames(sourcefile, frames_per_side)
 
-        self.load_frames(self.sourcefile)
+        self.rect = self.image.get_rect(topleft = (anch_x, anch_y))
 
-    def load_frames(self, sourcefile):
-        self.spritesheet = Spritesheet(sourcefile)
-        self.frames_down = [self.spritesheet.parse_sprite(sourcefile + "_front1.png"), self.spritesheet.parse_sprite(sourcefile + "_front2.png"), self.spritesheet.parse_sprite(sourcefile + "_front3.png"), self.spritesheet.parse_sprite(sourcefile + "_front4.png")]
-        self.frames_up = [self.spritesheet.parse_sprite(sourcefile + "_back1.png"), self.spritesheet.parse_sprite(sourcefile + "_back2.png"), self.spritesheet.parse_sprite(sourcefile + "_back3.png"), self.spritesheet.parse_sprite(sourcefile + "_back4.png")]
-        self.frames_left = [self.spritesheet.parse_sprite(sourcefile + "_left1.png"), self.spritesheet.parse_sprite(sourcefile + "_left2.png"), self.spritesheet.parse_sprite(sourcefile + "_left3.png"), self.spritesheet.parse_sprite(sourcefile + "_left4.png")]
-        self.frames_right = [self.spritesheet.parse_sprite(sourcefile + "_right1.png"), self.spritesheet.parse_sprite(sourcefile + "_right2.png"), self.spritesheet.parse_sprite(sourcefile + "_right3.png"), self.spritesheet.parse_sprite(sourcefile + "_right4.png")]
+        self.direction_x = 0
+        self.direction_y = 0
+        self.prev_time = 0
+        self.cur_sprlist = self.frames_down
+
+
+    def load_frames(self, sourcefile, frames_per_side):
+        self.spritesheet = Spritesheet(self.sourcefile)
+        self.frames_down = []
+        self.frames_up = []
+        self.frames_left = []
+        self.frames_right = []
+        self.frames = [self.frames_down, self.frames_up, self.frames_left, self.frames_right]
+        self.sides = ["_front","_back","_left","_right"]
+        side_list_pos = 0
+        for framelist in self.frames:
+            for frame in range(frames_per_side):
+                parsed_frame = self.spritesheet.parse_sprite(sourcefile + self.sides[side_list_pos] + str(frame+1) + ".png")
+                framelist.append(parsed_frame)
+            side_list_pos += 1
         self.cur_frame = 0
         self.image = self.frames_down[self.cur_frame]
 
     def update(self):
+        self.draw_NPC()
+        self.move()
+        return
 
+    def draw_NPC(self):
+        self.set_state()
+        self.animate()
+        self.size = self.image.get_size()
 
+    def set_state(self):
+        if self.direction_x != 0 or self.direction_y != 0:
+            self.state_idle = False
+        else:
+            self.state_idle = True
 
+    def animate(self):
+        if self.state_idle:
+            self.cur_frame = 0
+        else:
+            now = pygame.time.get_ticks()
+            if now - self.prev_time > 200:
+                self.prev_time = now
+                self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
 
+            if self.direction_x > 0:
+                self.cur_sprlist = self.frames_right
+            elif self.direction_x < 0:
+                self.cur_sprlist = self.frames_left
+            elif self.direction_y > 0:
+                self.cur_sprlist = self.frames_down
+            elif self.direction_y < 0:
+                self.cur_sprlist = self.frames_up
+        self.image = self.cur_sprlist[self.cur_frame]
 
+    def move(self):
+        self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
+        # I don't know what to put here right now, but this will most likely get handled by individual enemy classes
+        pass
 
+    def check_wallsX(self):
+        for wall in self.cur_room:
+            if self.rect.colliderect(wall):
+                if self.direction_x > 0:
+                    self.rect.right = wall.left
+                elif self.direction_x < 0:
+                    self.rect.left = wall.right
 
+    def check_wallsY(self):
+        for wall in self.cur_room:
+            if self.rect.colliderect(wall):
+                if self.direction_y > 0:
+                    self.rect.bottom = wall.top
+                elif self.direction_y < 0:
+                    self.rect.top = wall.bottom
+
+class Enemy(NPC):
+    def __init__(self, game, sourcefile, anch_x, anch_y, range):
+        super().__init__()
 
 
 
