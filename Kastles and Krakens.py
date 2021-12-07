@@ -21,7 +21,7 @@ class MainGame():
         self.key_d = False
         self.key_p = False
 
-        self.player = Player(self)
+        self.player = Player(self, "player", 624, 600, 0, 4)
         
         # player's current position in relation to the overworld, X and Y variables
         self.ow_posX = 2
@@ -29,15 +29,16 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         self.prev_ow_pos = []
         
-        self.room = Room()
-        self.load_rooms()
-        self.load_enemies()
+        #self.room = Room()
+
+        self.load_rooms_better()
+        #self.load_enemies()
 
         self.game_sprites = pygame.sprite.Group()
         self.game_sprites.add(self.player)
         
-        for i in self.enemy_list:
-            self.game_sprites.add(i)
+        #for i in self.enemy_list:
+            #self.game_sprites.add(i)
 
         #print(self.ow_pos)
         #self.scr_pos_x = self.game_WIDTH/2
@@ -98,7 +99,7 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         if self.cur_ow_pos == self.prev_ow_pos:
             return
-        self.map_image = self.room_list[self.ow_posY][self.ow_posX]
+        self.map_image = self.world_data[self.ow_posY][self.ow_posX][0].load_map()
         self.prev_ow_pos = self.cur_ow_pos
         
 
@@ -110,9 +111,41 @@ class MainGame():
         #self.map = TileMap(self.roomname)
         #self.map_image = self.map.load_map() #loads the map into the self.map_image variable
         #self.prev_ow_pos = self.cur_ow_pos
+
+    def load_rooms_better(self):
+        self.load_mapfile()
+        self.world_data = []
+        self.room_dir = os.path.join("room_bgs")
+
+        self.voidname = os.path.join(self.room_dir, "void.tmx")
+        self.void = TileMap(self.voidname)
+
+        for f in self.mapdata:
+            rowlist = []
+            for r in f:
+                if r == "void":
+                    roomdata = [self.void, [], []]
+                    rowlist.append(roomdata)
+                else:
+                    r += ".tmx"
+                    self.roomname = os.path.join(self.room_dir, r)
+                    self.map = TileMap(self.roomname)
+                    self.map.render_map()
+                    roomdata = [self.map, self.map.wall_list, self.map.enemy_list]
+                    rowlist.append(roomdata)
+            self.world_data.append(rowlist)
+        print(self.world_data)
         
     def load_rooms(self):
+        ### TO DO:
+        # Unify room_list and wall_list
+        # Desired structure: list (rows) of lists (rooms) of lists (room_name; wall_list; maybe enemy_list?) of lists (individual walls/ individual enemies) - 4(!) layers of lists
+        # What if I tracked the number of walls in each room to improve readability?
+
+        self.load_mapfile()
         # Basic setup, will use all of these later
+        self.world_data = []
+
         self.room_list = []
         self.wall_list = []
         self.enemy_list = []
@@ -123,7 +156,7 @@ class MainGame():
         self.void = TileMap(self.voidname)
         self.void_image = self.void.load_map()
 
-        for f in self.room.mapdata:
+        for f in self.mapdata:
             #print(f)
             rowlist = []
             wall_rowlist = []
@@ -150,6 +183,9 @@ class MainGame():
             self.room_list.append(rowlist)
             self.wall_list.append(wall_rowlist)
             self.enemy_list.append(enemy_rowlist)
+
+            self.world_data.append(rowlist)
+
             
         self.row_length = len(rowlist)
 
@@ -159,6 +195,11 @@ class MainGame():
         #print(self.room_list)
         #print(self.wall_list)
         print(self.enemy_list)
+
+    def load_mapfile(self):
+        with open("maplist.csv") as r:
+            loaded = csv.reader(r)  # reads the file, returns idk a number?
+            self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
 
     def load_enemies(self):
         return
@@ -231,8 +272,7 @@ class TileMap():
         self.height = tm.height * tm.tileheight
         self.tmxdata = tm
     
-    def render_map(self, surface):
-        tilecommand = self.tmxdata.get_tile_image_by_gid
+    def render_map(self):
         for layer in self.tmxdata.visible_layers:
             if isinstance(layer, pytmx.TiledObjectGroup):
                 #print("I'm in the object layer!")
@@ -248,13 +288,13 @@ class TileMap():
                         temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
                     if object.type == "enemy":
-                        enemy_data = []
+                        enemy_data = [object.properties["enemy_type"], object.x, object.y, object.properties["movement_range"]]
                         #print("I found an enemy!")
                         #self.enemy_list.append(object.properties["enemy_type"])
-                        enemy_data.append(object.properties["enemy_type"])
-                        enemy_data.append(object.x)
-                        enemy_data.append(object.y)
-                        enemy_data.append(object.properties["movement_range"])
+                        #enemy_data.append(object.properties["enemy_type"])
+                        #enemy_data.append(object.x)
+                        #enemy_data.append(object.y)
+                        #enemy_data.append(object.properties["movement_range"])
                         
                         
                         #if object.properties["enemy_type"] == "red_enemy":
@@ -263,196 +303,23 @@ class TileMap():
                             #print("object id: " + str(object.id))
                         self.enemy_list.append(enemy_data)
                         print(self.enemy_list)
-                #if layer == "collisions":
-                
-                    #for x, y, width, height, tile in layer:
-                    #    wall = Wall(x, y, width, height)
-                    #    self.wall_list.append(wall) 
             
-            elif isinstance(layer, pytmx.TiledTileLayer):
+            
+        #print(self.wall_list)
+    
+    def load_map(self):
+        temp_surface = pygame.Surface((self.width, self.height))
+        self.draw_map(temp_surface)
+        return temp_surface
+
+    def draw_map(self, surface):
+        tilecommand = self.tmxdata.get_tile_image_by_gid
+        for layer in self.tmxdata.visible_layers:
+            if isinstance(layer, pytmx.TiledTileLayer):
                 for x, y, gid in layer:
                     tile = tilecommand(gid)
                     if tile:
                         surface.blit(tile, (x*self.tmxdata.tilewidth, y*self.tmxdata.tileheight))
-        #print(self.wall_list)
-    def load_map(self):
-        temp_surface = pygame.Surface((self.width, self.height))
-        self.render_map(temp_surface)
-        return temp_surface
-
-
-
-class Room():
-    def __init__(self):
-        with open("maplist.csv") as r:
-            loaded = csv.reader(r)  # reads the file, returns idk a number?
-            self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
-        
-    def get_room(self, positionX, positionY):
-        # Using the converted .csv map file (now self.room_list) + self.ow_posX + self.ow_posY, return file name of current room
-        # NOTE: Getting the data directly using multiple [] parentheses causes a small bit of lag
-        cur_row = self.mapdata[positionY]
-        roomname = cur_row[positionX]
-        roomname += ".tmx"
-        ### NOTE: Rooms named void.tmx are an empty void, not meant to be accessible to the player
-        return roomname
-    
-"""
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = "player_front1.png"
-        self.rect = self.image.get_rect()
-        self.rect.center = (WIDTH/2, HEIGHT/2)
-
-    def update(self):
-        self.rect.x += 5
-"""
-
-class Player(pygame.sprite.Sprite):
-    ### TO DO:
-    # As part of the move or check edge function, check if the player is touching a wall
-    # If the movement would result in the player moving into a wall, cancel the movement
-    def __init__(self, game):
-        super().__init__()
-        self.game = game
-        #self.position_x = 624
-        #self.position_y = 600
-        self.sourcefile = "player_sprites.png"
-        self.load_frames()
-        self.rect = self.image.get_rect(center = (624,600))
-        #self.rect.topleft = (self.position_x, self.position_y)
-        #self.rect.center = (624, 600)
-        self.prev_time = 0
-        self.state_idle = True
-        self.direction_x = 0
-        self.direction_y = 0
-        
-        self.cur_sprlist = self.frames_down
-
-    def load_frames(self):
-        self.spritesheet = Spritesheet(self.sourcefile)
-        self.frames_down = [self.spritesheet.parse_sprite("player_front1.png"), self.spritesheet.parse_sprite("player_front2.png"), self.spritesheet.parse_sprite("player_front3.png"), self.spritesheet.parse_sprite("player_front4.png")]
-        self.frames_up = [self.spritesheet.parse_sprite("player_back1.png"), self.spritesheet.parse_sprite("player_back2.png"), self.spritesheet.parse_sprite("player_back3.png"), self.spritesheet.parse_sprite("player_back4.png")]
-        self.frames_left = [self.spritesheet.parse_sprite("player_left1.png"), self.spritesheet.parse_sprite("player_left2.png"), self.spritesheet.parse_sprite("player_left3.png"), self.spritesheet.parse_sprite("player_left4.png")]
-        self.frames_right = [self.spritesheet.parse_sprite("player_right1.png"), self.spritesheet.parse_sprite("player_right2.png"), self.spritesheet.parse_sprite("player_right3.png"), self.spritesheet.parse_sprite("player_right4.png")]
-        #print(self.frames_down)
-        self.cur_frame = 0
-        self.image = self.frames_down[self.cur_frame]
-
-
-
-
-    
-    def update(self):
-        # The dt is actually kind of useless, should I get rid of it?
-        dt = self.game.dt
-        self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
-        self.draw_player(dt)
-        self.move(dt)
-        #self.reset_variables()
-        #self.spr_update()
-        
-        
-    def spr_update(self):
-        #print("hey you're pressing p!")
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames_down)
-        self.image = self.frames_down[self.cur_frame]
-
-    def draw_player(self, dt):
-        self.set_state()
-        self.animate(dt)
-        self.size = self.image.get_size()
-        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
-        self.image = self.bigger_sprite
-        #self.game.main_screen.blit(self.bigger_sprite, (self.position_x, self.position_y))
-
-    def set_state(self):
-        # Detects whether the player is moving or not
-        if self.direction_x != 0 or self.direction_y != 0:
-            self.state_idle = False
-            #print("player is moving")
-        else:
-            self.state_idle = True
-            #print("player is idle")
-
-    def animate(self, dt):
-        # If the player is idle, the program doesn't iterate through the list of frames
-        if self.state_idle:
-            self.cur_frame = 0
-        else:
-            # Updates the current frame variable based on delta_time
-            now = pygame.time.get_ticks()
-            if now - self.prev_time > 200:
-                self.prev_time = now
-                self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
-            
-                # Chooses list of frames based on where the player is facing
-            if self.direction_x > 0:
-                self.cur_sprlist = self.frames_right
-            elif self.direction_x < 0:
-                self.cur_sprlist = self.frames_left
-            elif self.direction_y > 0:
-                self.cur_sprlist = self.frames_down
-            elif self.direction_y < 0:
-                self.cur_sprlist = self.frames_up
-        self.image = self.cur_sprlist[self.cur_frame]
-
-    # Source: Christian Duenas - Pygame Game States Tutorial
-    # https://www.youtube.com/watch?v=b_DkQrJxpck
-    def move(self, dt):
-        self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
-        
-        self.direction_x = self.game.key_d - self.game.key_a
-        self.direction_y = self.game.key_s - self.game.key_w
-        
-        self.rect.x += self.direction_x * 3
-        self.check_wallsX()
-
-        self.rect.y += self.direction_y * 3
-        self.check_wallsY()
-
-        #print("X: " + str(self.rect.x) + " and Y: " + str(self.rect.y))
-        
-        #self.check_walls()
-        self.check_edge()
-
-    def check_wallsX(self):
-        for wall in self.cur_room:
-            if self.rect.colliderect(wall):
-                if self.direction_x > 0:
-                    print("collision right side")
-                    self.rect.right = wall.left
-                elif self.direction_x < 0:
-                    print("collision left side")
-                    self.rect.left = wall.right
-
-    def check_wallsY(self):
-        for wall in self.cur_room:
-            if self.rect.colliderect(wall):
-                if self.direction_y > 0:
-                    print("collision bottom side")
-                    self.rect.bottom = wall.top
-                elif self.direction_y < 0:
-                    print("collision top side")
-                    self.rect.top = wall.bottom
-
-    def check_edge(self):
-        ### TO DO:
-        # Check the player's position using the self.rect variable
-        if self.rect.x <= 16: #player approaches left side
-            self.game.ow_posX -= 1
-            self.rect.x = 1180
-        elif self.rect.x >= 1232: #player approaches right side
-            self.game.ow_posX += 1
-            self.rect.x = 80
-        elif self.rect.y <= 16: #player approaches top side
-            self.game.ow_posY -= 1
-            self.rect.y = 880
-        elif self.rect.y >= 912: #player approaches bottom side
-            self.game.ow_posY += 1
-            self.rect.y = 80
-        
 
 class NPC(pygame.sprite.Sprite):
 # you know what I can just copy a bunch of stuff from the player class
@@ -464,6 +331,7 @@ class NPC(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect(topleft = (anch_x, anch_y))
 
+        self.state_idle = True
         self.direction_x = 0
         self.direction_y = 0
         self.prev_time = 0
@@ -490,23 +358,27 @@ class NPC(pygame.sprite.Sprite):
     def update(self):
         self.draw_NPC()
         self.move()
-        return
 
     def draw_NPC(self):
         self.set_state()
         self.animate()
         self.size = self.image.get_size()
+        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
+        self.image = self.bigger_sprite
 
     def set_state(self):
+        # Detects whether the NPC is moving or not
         if self.direction_x != 0 or self.direction_y != 0:
             self.state_idle = False
         else:
             self.state_idle = True
 
     def animate(self):
+        # If the NPC is idle, the program doesn't iterate through the list of frames
         if self.state_idle:
             self.cur_frame = 0
         else:
+            # Updates the current frame/cur_frame variable based on the amount of time that has passed
             now = pygame.time.get_ticks()
             if now - self.prev_time > 200:
                 self.prev_time = now
@@ -523,7 +395,7 @@ class NPC(pygame.sprite.Sprite):
         self.image = self.cur_sprlist[self.cur_frame]
 
     def move(self):
-        self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
+        #self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
         # I don't know what to put here right now, but this will most likely get handled by individual enemy classes
         pass
 
@@ -531,17 +403,63 @@ class NPC(pygame.sprite.Sprite):
         for wall in self.cur_room:
             if self.rect.colliderect(wall):
                 if self.direction_x > 0:
+                    #print("collision right side")
                     self.rect.right = wall.left
                 elif self.direction_x < 0:
+                    #print("collision left side")
                     self.rect.left = wall.right
 
     def check_wallsY(self):
         for wall in self.cur_room:
             if self.rect.colliderect(wall):
                 if self.direction_y > 0:
+                    #print("collision bottom side")
                     self.rect.bottom = wall.top
                 elif self.direction_y < 0:
+                    #print("collision top side")
                     self.rect.top = wall.bottom
+
+
+class Player(NPC):
+    ### TO DO:
+    # Instead of moving between rooms based on specific coordinates, find a way to move between rooms based on collisions between custom rects
+    # Maybe even add a small animation? That'd be nice
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side):
+        super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
+
+    # Source: Christian Duenas - Pygame Game States Tutorial
+    # https://www.youtube.com/watch?v=b_DkQrJxpck
+    def move(self):
+        self.cur_room = self.game.world_data[self.game.ow_posY][self.game.ow_posX][1]
+        
+        self.direction_x = self.game.key_d - self.game.key_a
+        self.direction_y = self.game.key_s - self.game.key_w
+        
+        self.rect.x += self.direction_x * 3
+        self.check_wallsX()
+
+        self.rect.y += self.direction_y * 3
+        self.check_wallsY()
+        
+        self.check_edge()
+        #print("X: " + str(self.rect.x) + " and Y: " + str(self.rect.y))
+
+    def check_edge(self):
+        ### TO DO:
+        # Check the player's position using the self.rect variable
+        if self.rect.x <= 16: #player approaches left side
+            self.game.ow_posX -= 1
+            self.rect.x = 1180
+        elif self.rect.x >= 1232: #player approaches right side
+            self.game.ow_posX += 1
+            self.rect.x = 80
+        elif self.rect.y <= 16: #player approaches top side
+            self.game.ow_posY -= 1
+            self.rect.y = 880
+        elif self.rect.y >= 912: #player approaches bottom side
+            self.game.ow_posY += 1
+            self.rect.y = 80
+
 
 class Enemy(NPC):
     def __init__(self, game, sourcefile, anch_x, anch_y, range):
