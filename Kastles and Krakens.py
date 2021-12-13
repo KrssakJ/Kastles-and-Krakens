@@ -1,4 +1,6 @@
-import pygame, pytmx, time, os, csv, json
+import pygame, pytmx
+import time, math
+import os, csv, json
 
 pygame.init()
 
@@ -29,27 +31,7 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         self.prev_ow_pos = []
         
-        #self.room = Room()
-
         self.load_rooms_better()
-        #self.load_enemies()
-
-        self.game_sprites = pygame.sprite.Group()
-        self.game_sprites.add(self.player)
-        
-        #for i in self.enemy_list:
-            #self.game_sprites.add(i)
-
-        #print(self.ow_pos)
-        #self.scr_pos_x = self.game_WIDTH/2
-        #self.scr_pos_y = self.game_HEIGHT/2
-        #print(self.scr_pos_x)
-        #print(self.scr_pos_y)
-        
-        
-
-
-
 
     def get_events(self):
         for event in pygame.event.get():
@@ -92,15 +74,17 @@ class MainGame():
                     self.key_p = False
     
     def change_pos(self):
-        ### TO DO:
-        # Add an if/else statement that will check the player's current position
-        # If it doesn't match the player's previous position (moving between rooms), the function will load in a new room
-        # GOAL: reduce CPU usage by avoiding having to constantly reload the exact same room
+        ## TO DO:
+        # Based on the player's current position, load the enemies in each room
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         if self.cur_ow_pos == self.prev_ow_pos:
             return
         self.map_image = self.world_data[self.ow_posY][self.ow_posX][0].load_map()
+        self.cur_room = self.world_data[self.ow_posY][self.ow_posX][1]
+        self.load_sprites()
+        self.load_enemies(self.world_data[self.ow_posY][self.ow_posX][2])
         self.prev_ow_pos = self.cur_ow_pos
+        print(str(self.game_sprites))
         
 
         #self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
@@ -134,7 +118,7 @@ class MainGame():
                     roomdata = [self.map, self.map.wall_list, self.map.enemy_list]
                     rowlist.append(roomdata)
             self.world_data.append(rowlist)
-        print(self.world_data)
+        #print(self.world_data)
         
     def load_rooms(self):
         ### TO DO:
@@ -201,8 +185,19 @@ class MainGame():
             loaded = csv.reader(r)  # reads the file, returns idk a number?
             self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
 
-    def load_enemies(self):
-        return
+    def load_sprites(self):
+        self.game_sprites = pygame.sprite.Group()
+        self.game_sprites.add(self.player)
+
+    def load_enemies(self, enemy_list):
+        if len(enemy_list) == 0:
+            print("there are no enemies in this room.")
+        else:
+            print("there are some enemies in this room!")
+            for enemy in enemy_list:
+                enemy = Enemy(self, enemy[0], enemy[1], enemy[2], enemy[3], 4, enemy[0])
+                self.game_sprites.add(enemy)
+        
     # Source: Christian Duenas - Pygame Framerate Independence
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
     def get_dt(self):
@@ -430,14 +425,13 @@ class Player(NPC):
     # Source: Christian Duenas - Pygame Game States Tutorial
     # https://www.youtube.com/watch?v=b_DkQrJxpck
     def move(self):
-        self.cur_room = self.game.world_data[self.game.ow_posY][self.game.ow_posX][1]
+        self.cur_room = self.game.cur_room
         
         self.direction_x = self.game.key_d - self.game.key_a
         self.direction_y = self.game.key_s - self.game.key_w
         
         self.rect.x += self.direction_x * 3
         self.check_wallsX()
-
         self.rect.y += self.direction_y * 3
         self.check_wallsY()
         
@@ -462,9 +456,83 @@ class Player(NPC):
 
 
 class Enemy(NPC):
-    def __init__(self, game, sourcefile, anch_x, anch_y, range):
-        super().__init__()
+    ## TO DO:
+    # Fix the "vibrating enemy" issue
+    # Fix the lingering animation DONE
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, enemy_type):
+        # Since the enemy's position is written in world_data, enemies don't need to track their position (at least in theory)
+        super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
+        self.range = range
+        #print("i made an enemy")
+        #print("X: ", str(self.rect.x), "Y: ", self.rect.y)
+        self.player_spotted = False
+        #self.cur_room = self.game.cur_room
 
+    def move(self):
+        self.check_for_player() # this is going to check if the player is within some arbitrary range
+        if self.player_spotted == True:
+            self.chase_player() # this is going to use a pathfinding algorithm to chase the player
+        elif self.player_spotted == False:
+            self.direction_x, self.direction_y = 0, 0
+            self.state_idle = True
+        #self.find_pos() # this is going to find a new position to move to (within range)
+        #self.move_enemy() # this is going to move the enemy to a new position after some arbitrary length of time has passed
+
+    def check_for_player(self):
+        # calculates the distance between the enemy's rect and the player's rect
+        self.distance = math.hypot(self.rect.x - self.game.player.rect.x, self.rect.y - self.game.player.rect.y)
+        if self.distance <= self.range:
+            self.player_spotted = True
+            #print("I see you!")
+        else:
+            self.player_spotted = False
+            #print("where did you go?")
+
+    def chase_player(self):
+        # calculates the direction the enemy will move in during a chase
+        self.detecX = self.game.player.rect.x - self.rect.x
+        self.detecY = self.game.player.rect.y - self.rect.y
+        # okay so the detection works fine, but the enemy is moving in the opposite direction
+        if self.detecX < 0:
+            self.direction_x = -1
+            #print("you're on my left!")
+        elif self.detecX > 0:
+            self.direction_x = 1
+            #print("you're on my right!")
+        if self.detecY < 0:
+            self.direction_y = -1
+            #print("you're above me!")
+        elif self.detecY > 0:
+            self.direction_y = 1
+            #print("you're below me!")
+        self.approximate_direction()
+        self.move_enemy()
+
+    def approximate_direction(self):
+        # stops the sprite from "vibrating" (a.k.a. oscillating)
+        if self.detecX <= 2 and self.detecX >= -2:
+            self.direction_x = 0
+        if self.detecY <= 2 and self.detecY >= -2:
+            self.direction_y = 0
+
+    def move_enemy(self):
+        # a general movement function, direction depends on whether the enemy is chasing or idle
+        self.rect.x += self.direction_x * 1
+        #self.check_wallsX()
+        self.rect.y += self.direction_y * 1
+        #self.check_wallsY()
+
+
+
+
+
+
+
+
+
+
+#class Walker(Enemy)
+#class Frog(Enemy)
 
 
 

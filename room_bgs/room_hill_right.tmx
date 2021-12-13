@@ -73,7 +73,7 @@
   <object id="1" name="red_enemy" type="enemy" x="845" y="167.676" width="48" height="48">
    <properties>
     <property name="enemy_type" value="red_enemy"/>
-    <property name="movement_range" type="float" value="100"/>
+    <property name="movement_range" type="float" value="300"/>
    </properties>
   </object>
  </objectgroup>
