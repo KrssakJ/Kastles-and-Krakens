@@ -330,6 +330,7 @@ class NPC(pygame.sprite.Sprite):
         self.direction_x = 0
         self.direction_y = 0
         self.prev_time = 0
+
         self.cur_sprlist = self.frames_down
 
 
@@ -462,21 +463,35 @@ class Enemy(NPC):
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, enemy_type):
         # Since the enemy's position is written in world_data, enemies don't need to track their position (at least in theory)
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
-        self.range = range
+        self.range = range*2
+        self.anch_x = anch_x
+        self.anch_y = anch_y
         #print("i made an enemy")
         #print("X: ", str(self.rect.x), "Y: ", self.rect.y)
+        self.at_home = True
         self.player_spotted = False
+        self.alive = True
         #self.cur_room = self.game.cur_room
 
     def move(self):
+        self.check_for_home()
         self.check_for_player() # this is going to check if the player is within some arbitrary range
         if self.player_spotted == True:
             self.chase_player() # this is going to use a pathfinding algorithm to chase the player
         elif self.player_spotted == False:
-            self.direction_x, self.direction_y = 0, 0
-            self.state_idle = True
+            if self.at_home == False:
+                self.return_home()
+            else:
+                self.wander()
         #self.find_pos() # this is going to find a new position to move to (within range)
         #self.move_enemy() # this is going to move the enemy to a new position after some arbitrary length of time has passed
+
+    def check_for_home(self):
+        if (self.rect.x in (self.anch_x-2, self.anch_x +2)) or (self.rect.y in (self.anch_y-2, self.anch_y+2)):
+            self.at_home = False
+        else:
+            self.at_home = True
+
 
     def check_for_player(self):
         # calculates the distance between the enemy's rect and the player's rect
@@ -492,19 +507,16 @@ class Enemy(NPC):
         # calculates the direction the enemy will move in during a chase
         self.detecX = self.game.player.rect.x - self.rect.x
         self.detecY = self.game.player.rect.y - self.rect.y
-        # okay so the detection works fine, but the enemy is moving in the opposite direction
+
         if self.detecX < 0:
             self.direction_x = -1
-            #print("you're on my left!")
         elif self.detecX > 0:
             self.direction_x = 1
-            #print("you're on my right!")
         if self.detecY < 0:
             self.direction_y = -1
-            #print("you're above me!")
         elif self.detecY > 0:
             self.direction_y = 1
-            #print("you're below me!")
+        
         self.approximate_direction()
         self.move_enemy()
 
@@ -522,6 +534,21 @@ class Enemy(NPC):
         self.rect.y += self.direction_y * 1
         #self.check_wallsY()
 
+    def set_anchor(self):
+        self.anch_x = self.rect.x
+        self.anch_y = self.rect.y
+
+    def wander(self):
+        # idle movement, plays while the player is out of range
+        self.direction_x, self.direction_y = 0, 0
+        self.state_idle = True
+
+        self.find_pos()
+        self.move_enemy()
+
+    def find_pos(self):
+        # finds a new target position within range of anchor
+        pass
 
 
 
@@ -533,6 +560,7 @@ class Enemy(NPC):
 
 #class Walker(Enemy)
 #class Frog(Enemy)
+#class Charger(Enemy)
 
 
 
