@@ -8,13 +8,14 @@ pygame.display.set_caption("Kastles and Krakens")
 
 class MainGame():
     def __init__(self):
-        #pygame.init()
+        ### TO DO:
+        # Differentiating between sprites and battle_sprites using a trigger
+        # Battle phase, at least something
         self.running = True
         self.game_WIDTH = 1280
         self.game_HEIGHT = 960
         self.main_screen = pygame.display.set_mode((self.game_WIDTH, self.game_HEIGHT))
         self.clock = pygame.time.Clock()
-        self.dt = 0
         self.prev_time = time.time()
         
         self.key_w = False
@@ -31,25 +32,16 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         self.prev_ow_pos = []
         
-        self.load_rooms_better()
+        self.states = ["roaming", "battle", "menu"]
+        self.game_state = self.states[0]
+
+        self.load_rooms_betterer()
 
     def get_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                # arrow keys - debug commands (kinda)
-                """
-                if event.key == pygame.K_UP:
-                    self.ow_posY -= 1
-                elif event.key == pygame.K_DOWN:
-                    self.ow_posY += 1
-                elif event.key == pygame.K_LEFT:
-                    self.ow_posX -= 1
-                elif event.key == pygame.K_RIGHT:
-                    self.ow_posX += 1
-                #print(self.ow_pos)
-                """
                 if event.key == pygame.K_w:
                     self.key_w = True
                 elif event.key == pygame.K_a:
@@ -74,112 +66,38 @@ class MainGame():
                     self.key_p = False
     
     def change_pos(self):
-        ## TO DO:
-        # Based on the player's current position, load the enemies in each room
+        # Checks if the player has gone into a different room
+        # If the player has moved between room, the function loads a new room from scratch
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         if self.cur_ow_pos == self.prev_ow_pos:
             return
-        self.map_image = self.world_data[self.ow_posY][self.ow_posX][0].load_map()
-        self.cur_room = self.world_data[self.ow_posY][self.ow_posX][1]
+        self.cur_room = self.world_data[self.ow_posY][self.ow_posX]
+        self.cur_map_image = self.cur_room.map.load_map()
+        self.cur_wall_list = self.cur_room.wall_list
         self.load_sprites()
-        self.load_enemies(self.world_data[self.ow_posY][self.ow_posX][2])
+        self.load_enemies(self.cur_room.enemy_list)
         self.prev_ow_pos = self.cur_ow_pos
-        print(str(self.game_sprites))
-        
 
-        #self.mapid = self.room.get_room(self.ow_posX, self.ow_posY) #returns a text file that contains the name of the room
-        
-
-        #self.room_dir = os.path.join("room_bgs")
-        #self.roomname = os.path.join(self.room_dir, self.mapid)
-        #self.map = TileMap(self.roomname)
-        #self.map_image = self.map.load_map() #loads the map into the self.map_image variable
-        #self.prev_ow_pos = self.cur_ow_pos
-
-    def load_rooms_better(self):
+    def load_rooms_betterer(self):
         self.load_mapfile()
         self.world_data = []
         self.room_dir = os.path.join("room_bgs")
 
         self.voidname = os.path.join(self.room_dir, "void.tmx")
-        self.void = TileMap(self.voidname)
+        self.void = Room(self, "void")
 
         for f in self.mapdata:
             rowlist = []
             for r in f:
                 if r == "void":
-                    roomdata = [self.void, [], []]
+                    roomdata = self.void
                     rowlist.append(roomdata)
                 else:
-                    r += ".tmx"
-                    self.roomname = os.path.join(self.room_dir, r)
-                    self.map = TileMap(self.roomname)
-                    self.map.render_map()
-                    roomdata = [self.map, self.map.wall_list, self.map.enemy_list]
+                    roomdata = Room(self, r)
                     rowlist.append(roomdata)
             self.world_data.append(rowlist)
         #print(self.world_data)
         
-    def load_rooms(self):
-        ### TO DO:
-        # Unify room_list and wall_list
-        # Desired structure: list (rows) of lists (rooms) of lists (room_name; wall_list; maybe enemy_list?) of lists (individual walls/ individual enemies) - 4(!) layers of lists
-        # What if I tracked the number of walls in each room to improve readability?
-
-        self.load_mapfile()
-        # Basic setup, will use all of these later
-        self.world_data = []
-
-        self.room_list = []
-        self.wall_list = []
-        self.enemy_list = []
-        self.room_dir = os.path.join("room_bgs")
-
-        # Void needs to be loaded in separately, to reduce memory usage (from 141MB to 70MB)
-        self.voidname = os.path.join(self.room_dir, "void.tmx")
-        self.void = TileMap(self.voidname)
-        self.void_image = self.void.load_map()
-
-        for f in self.mapdata:
-            #print(f)
-            rowlist = []
-            wall_rowlist = []
-            enemy_rowlist = []
-            # f variable is a list, we need a way to cycle through each row
-            for r in f:
-                # r variable should be the specific room
-                if r == "void":
-                    rowlist.append(self.void_image)
-                    wall_rowlist.append(self.void.wall_list)
-                    enemy_rowlist.append([])
-                else:
-                    r += ".tmx"
-                    self.roomname = os.path.join(self.room_dir, r)
-                    self.map = TileMap(self.roomname)
-                    self.map_image = self.map.load_map()
-                    #print(self.map.wall_list)
-                    wall_rowlist.append(self.map.wall_list)
-                    for enemy in self.map.enemy_list:
-                        loaded_enemy = NPC(self, enemy[0], enemy[1], enemy[2], enemy[3], 4)
-                        enemy_rowlist.append(loaded_enemy)
-
-                    rowlist.append(self.map_image)
-            self.room_list.append(rowlist)
-            self.wall_list.append(wall_rowlist)
-            self.enemy_list.append(enemy_rowlist)
-
-            self.world_data.append(rowlist)
-
-            
-        self.row_length = len(rowlist)
-
-        
-        #print(self.row_length)
-        #print(self.room.mapdata)
-        #print(self.room_list)
-        #print(self.wall_list)
-        print(self.enemy_list)
-
     def load_mapfile(self):
         with open("maplist.csv") as r:
             loaded = csv.reader(r)  # reads the file, returns idk a number?
@@ -190,17 +108,14 @@ class MainGame():
         self.game_sprites.add(self.player)
 
     def load_enemies(self, enemy_list):
-        if len(enemy_list) == 0:
-            print("there are no enemies in this room.")
-        else:
-            print("there are some enemies in this room!")
-            for enemy in enemy_list:
-                enemy = Enemy(self, enemy[0], enemy[1], enemy[2], enemy[3], 4, enemy[0])
-                self.game_sprites.add(enemy)
+        for enemy in enemy_list:
+            enemy = Enemy(self, enemy[0], enemy[1], enemy[2], enemy[3], 4, enemy[0])
+            self.game_sprites.add(enemy)
         
     # Source: Christian Duenas - Pygame Framerate Independence
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
     def get_dt(self):
+        # so far relatively unnecessary, likely to be removed in the future
         now = time.time()
         self.dt = now - self.prev_time
         self.prev_time = now
@@ -210,12 +125,13 @@ class MainGame():
             self.clock.tick(60)
             self.get_events()
             self.change_pos()
-            self.get_dt()
-            #self.main_screen.fill((0,0,0))
-            self.main_screen.blit(self.map_image, (0,0))
+            self.main_screen.blit(self.cur_map_image, (0,0))
             self.game_sprites.update()
+            #self.battle_sprites.update()
             self.game_sprites.draw(self.main_screen)
-            #self.player.draw_player(self.player.position_x, self.player.position_y)
+            #self.battle_sprites.draw(self.main_screen)
+            #### IF overworld: x, elif battlephase: Y
+
             pygame.display.flip()
 
 class Spritesheet():
@@ -235,8 +151,7 @@ class Spritesheet():
     def get_sprite(self, x, y, width, height):
         # Draws the sprite on a small surface
         sprite = pygame.Surface((width, height))
-        # alfa kanal pro sprite
-        sprite.set_colorkey((0,0,0))
+        sprite.set_colorkey((0,0,0)) # Sets the sprite alpha channel
         sprite.blit(self.sprite_sheet, (0,0), (x,y,width,height))
         return sprite
         
@@ -251,9 +166,17 @@ class Spritesheet():
         image = self.get_sprite(x, y, width, height)
         return image
 
+class Room():
+    # Room object, stores info about walls/enemies/room properties (mainly for the purposes of readibility)
+    def __init__(self, game, roomname):
+        self.game = game
+        self.roomname = os.path.join(self.game.room_dir, (roomname + ".tmx"))
+        self.map = TileMap(self.roomname)
+        self.map.render_map()
+        
+        self.wall_list = self.map.wall_list
+        self.enemy_list = self.map.enemy_list
 
-        
-        
 
 # Source: KidsCanCode - Tile-based game part 12: Loading Tiled Maps
 # https://www.youtube.com/watch?v=QIXyj3WeyZM
@@ -270,37 +193,17 @@ class TileMap():
     def render_map(self):
         for layer in self.tmxdata.visible_layers:
             if isinstance(layer, pytmx.TiledObjectGroup):
-                #print("I'm in the object layer!")
                 for object in self.tmxdata.objects:
                     # object properties: id (integer); name,type (strings); x,y,width,height (floats); object.properties (dictionary)
-
-                    #print("I found an object! It's a " + object.type + " and has a width of " + str(object.width))
-                    #print("Double width: " + str(object.width*2))
-                    #print("it has an id " + str(object.id))
-
+                    # object.properties is a dictionary that displays pairs of data
                     if object.type == "wall":
                         # The 32px offset is due to the colliderect function - it's based off of the coordinates of the top left corner
                         temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
                     if object.type == "enemy":
                         enemy_data = [object.properties["enemy_type"], object.x, object.y, object.properties["movement_range"]]
-                        #print("I found an enemy!")
-                        #self.enemy_list.append(object.properties["enemy_type"])
-                        #enemy_data.append(object.properties["enemy_type"])
-                        #enemy_data.append(object.x)
-                        #enemy_data.append(object.y)
-                        #enemy_data.append(object.properties["movement_range"])
-                        
-                        
-                        #if object.properties["enemy_type"] == "red_enemy":
-                            # object.properties is a dictionary that displays pairs of data
-                            #print("I found their enemy type!")
-                            #print("object id: " + str(object.id))
                         self.enemy_list.append(enemy_data)
-                        print(self.enemy_list)
-            
-            
-        #print(self.wall_list)
+                        #print(self.enemy_list)
     
     def load_map(self):
         temp_surface = pygame.Surface((self.width, self.height))
@@ -317,7 +220,8 @@ class TileMap():
                         surface.blit(tile, (x*self.tmxdata.tilewidth, y*self.tmxdata.tileheight))
 
 class NPC(pygame.sprite.Sprite):
-# you know what I can just copy a bunch of stuff from the player class
+    # Parent class for every character in the game (player, enemies, shopkeepers, etc.)
+    # Contains basic spritesheet functions, basic animation, collision with walls
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side):
         super().__init__()
         self.game = game
@@ -332,7 +236,6 @@ class NPC(pygame.sprite.Sprite):
         self.prev_time = 0
 
         self.cur_sprlist = self.frames_down
-
 
     def load_frames(self, sourcefile, frames_per_side):
         self.spritesheet = Spritesheet(self.sourcefile)
@@ -391,12 +294,11 @@ class NPC(pygame.sprite.Sprite):
         self.image = self.cur_sprlist[self.cur_frame]
 
     def move(self):
-        #self.cur_room = self.game.wall_list[self.game.ow_posY][self.game.ow_posX]
         # I don't know what to put here right now, but this will most likely get handled by individual enemy classes
         pass
 
     def check_wallsX(self):
-        for wall in self.cur_room:
+        for wall in self.cur_wall_list:
             if self.rect.colliderect(wall):
                 if self.direction_x > 0:
                     #print("collision right side")
@@ -406,7 +308,7 @@ class NPC(pygame.sprite.Sprite):
                     self.rect.left = wall.right
 
     def check_wallsY(self):
-        for wall in self.cur_room:
+        for wall in self.cur_wall_list:
             if self.rect.colliderect(wall):
                 if self.direction_y > 0:
                     #print("collision bottom side")
@@ -426,7 +328,7 @@ class Player(NPC):
     # Source: Christian Duenas - Pygame Game States Tutorial
     # https://www.youtube.com/watch?v=b_DkQrJxpck
     def move(self):
-        self.cur_room = self.game.cur_room
+        self.cur_wall_list = self.game.cur_wall_list
         
         self.direction_x = self.game.key_d - self.game.key_a
         self.direction_y = self.game.key_s - self.game.key_w
@@ -437,7 +339,6 @@ class Player(NPC):
         self.check_wallsY()
         
         self.check_edge()
-        #print("X: " + str(self.rect.x) + " and Y: " + str(self.rect.y))
 
     def check_edge(self):
         ### TO DO:
@@ -458,8 +359,8 @@ class Player(NPC):
 
 class Enemy(NPC):
     ## TO DO:
-    # Fix the "vibrating enemy" issue
-    # Fix the lingering animation DONE
+    # wander() function to move randomly around an anchor point
+    # Multiple enemy types; different move_enemy() functions
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, enemy_type):
         # Since the enemy's position is written in world_data, enemies don't need to track their position (at least in theory)
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
@@ -517,6 +418,9 @@ class Enemy(NPC):
         elif self.detecY > 0:
             self.direction_y = 1
         
+        # sign function
+
+
         self.approximate_direction()
         self.move_enemy()
 
