@@ -108,8 +108,11 @@ class MainGame():
         self.game_sprites.add(self.player)
 
     def load_enemies(self, enemy_list):
+        # enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
         for enemy in enemy_list:
-            enemy = Enemy(self, enemy[0], enemy[1], enemy[2], enemy[3], 4, enemy[0])
+            if enemy[3] == "walker":
+                enemy = Walker(self, enemy[2], enemy[0], enemy[1], enemy[4], 4, enemy[5])
+            #enemy = Enemy(self, enemy[0], enemy[1], enemy[2], enemy[3], 4, enemy[0])
             self.game_sprites.add(enemy)
         
     # Source: Christian Duenas - Pygame Framerate Independence
@@ -140,6 +143,7 @@ class Spritesheet():
         # Currently only works if every sprite has their individual folder with their spritesheet
         # May need to create a single, fixed folder that contains EVERY spritesheet in the game
         self.filename = filename
+        #print(self.filename)
         self.jsonfilename = self.filename.replace("png","json")
         self.sprite_dir = os.path.join("spritesheets")
         self.sprite_sheet = pygame.image.load(os.path.join(self.sprite_dir, self.filename)).convert()
@@ -201,7 +205,7 @@ class TileMap():
                         temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
                     if object.type == "enemy":
-                        enemy_data = [object.properties["enemy_type"], object.x, object.y, object.properties["movement_range"]]
+                        enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
                         self.enemy_list.append(enemy_data)
                         #print(self.enemy_list)
     
@@ -238,6 +242,7 @@ class NPC(pygame.sprite.Sprite):
         self.cur_sprlist = self.frames_down
 
     def load_frames(self, sourcefile, frames_per_side):
+        
         self.spritesheet = Spritesheet(self.sourcefile)
         self.frames_down = []
         self.frames_up = []
@@ -361,9 +366,10 @@ class Enemy(NPC):
     ## TO DO:
     # wander() function to move randomly around an anchor point
     # Multiple enemy types; different move_enemy() functions
-    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, enemy_type):
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
         # Since the enemy's position is written in world_data, enemies don't need to track their position (at least in theory)
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
+        #print(sourcefile)
         self.range = range*2
         self.anch_x = anch_x
         self.anch_y = anch_y
@@ -373,6 +379,50 @@ class Enemy(NPC):
         self.player_spotted = False
         self.alive = True
         #self.cur_room = self.game.cur_room
+        #set_movementspeed()
+
+    
+
+    def move(self):
+        pass
+        #self.find_pos() # this is going to find a new position to move to (within range)
+        #self.move_enemy() # this is going to move the enemy to a new position after some arbitrary length of time has passed
+
+    def check_for_home(self):
+        if (self.rect.x in (self.anch_x-2, self.anch_x +2)) or (self.rect.y in (self.anch_y-2, self.anch_y+2)):
+            self.at_home = False
+        else:
+            self.at_home = True
+
+    def check_for_player(self):
+        # calculates the distance between the enemy's rect and the player's rect
+        self.distance = math.hypot(self.rect.x - self.game.player.rect.x, self.rect.y - self.game.player.rect.y)
+        if self.distance <= self.range:
+            self.player_spotted = True
+            #print("I see you!")
+        else:
+            self.player_spotted = False
+            #print("where did you go?")
+
+    def set_anchor(self):
+        self.anch_x = self.rect.x
+        self.anch_y = self.rect.y
+
+    def wander(self):
+        pass
+ 
+    def find_pos(self):
+        # finds a new target position within range of anchor
+        pass
+
+class Walker(Enemy):
+    # Simple enemy; if the player is spotted, it will follow the player in a straight line
+    # Skeleton: slow walker
+    # Flying Eye: medium walker
+    # Goblin: fast walker
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
+        super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
+        self.mvms = movement_speed
 
     def move(self):
         self.check_for_home()
@@ -384,25 +434,6 @@ class Enemy(NPC):
                 self.return_home()
             else:
                 self.wander()
-        #self.find_pos() # this is going to find a new position to move to (within range)
-        #self.move_enemy() # this is going to move the enemy to a new position after some arbitrary length of time has passed
-
-    def check_for_home(self):
-        if (self.rect.x in (self.anch_x-2, self.anch_x +2)) or (self.rect.y in (self.anch_y-2, self.anch_y+2)):
-            self.at_home = False
-        else:
-            self.at_home = True
-
-
-    def check_for_player(self):
-        # calculates the distance between the enemy's rect and the player's rect
-        self.distance = math.hypot(self.rect.x - self.game.player.rect.x, self.rect.y - self.game.player.rect.y)
-        if self.distance <= self.range:
-            self.player_spotted = True
-            #print("I see you!")
-        else:
-            self.player_spotted = False
-            #print("where did you go?")
 
     def chase_player(self):
         # calculates the direction the enemy will move in during a chase
@@ -417,30 +448,24 @@ class Enemy(NPC):
             self.direction_y = -1
         elif self.detecY > 0:
             self.direction_y = 1
-        
-        # sign function
-
 
         self.approximate_direction()
         self.move_enemy()
 
+    def move_enemy(self):
+        # a general movement function, direction depends on whether the enemy is chasing or idle
+        # skoleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
+        self.rect.x += self.direction_x * 1.25
+        #self.check_wallsX()
+        self.rect.y += self.direction_y * 1.25
+        #self.check_wallsY()
+    
     def approximate_direction(self):
         # stops the sprite from "vibrating" (a.k.a. oscillating)
         if self.detecX <= 2 and self.detecX >= -2:
             self.direction_x = 0
         if self.detecY <= 2 and self.detecY >= -2:
             self.direction_y = 0
-
-    def move_enemy(self):
-        # a general movement function, direction depends on whether the enemy is chasing or idle
-        self.rect.x += self.direction_x * 1
-        #self.check_wallsX()
-        self.rect.y += self.direction_y * 1
-        #self.check_wallsY()
-
-    def set_anchor(self):
-        self.anch_x = self.rect.x
-        self.anch_y = self.rect.y
 
     def wander(self):
         # idle movement, plays while the player is out of range
@@ -450,21 +475,16 @@ class Enemy(NPC):
         self.find_pos()
         self.move_enemy()
 
-    def find_pos(self):
-        # finds a new target position within range of anchor
-        pass
 
+#class Frog(Enemy):
+    # Complicated enemy; if the player is spotted, it will mark the player's direction and jump towards them
+    # Do I actually want to do this one? idk how it'd work with sprites
+    # Slime?
 
+#class Charger(Enemy):
+    # Complicated enemy; if the player is spotted, it will stay in place for 2 seconds, mark the player's location, and charge in a straight line
+    # Mushroom/Fungus: slow charger
 
-
-
-
-
-
-
-#class Walker(Enemy)
-#class Frog(Enemy)
-#class Charger(Enemy)
 
 
 

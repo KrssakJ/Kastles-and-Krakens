@@ -72,14 +72,18 @@
  <objectgroup id="4" name="Enemies">
   <object id="1" name="blue_enemy" type="enemy" x="845" y="167.676" width="48" height="48">
    <properties>
-    <property name="enemy_type" value="blue_enemy"/>
+    <property name="enemy_sprite" value="blue_enemy"/>
+    <property name="enemy_type" value="walker"/>
     <property name="movement_range" type="float" value="100"/>
+    <property name="movement_speed" type="float" value="1"/>
    </properties>
   </object>
   <object id="4" name="blue_enemy" type="enemy" x="523.741" y="790.905" width="48" height="48">
    <properties>
-    <property name="enemy_type" value="red_enemy"/>
+    <property name="enemy_sprite" value="red_enemy"/>
+    <property name="enemy_type" value="walker"/>
     <property name="movement_range" type="float" value="100"/>
+    <property name="movement_speed" type="float" value="1.25"/>
    </properties>
   </object>
  </objectgroup>

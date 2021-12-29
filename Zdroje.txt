@@ -3,6 +3,11 @@ delta_time: Christian Duenas - Pygame Framerate Independence (https://www.youtub
 
 Obrazky:
 tileset1: Szadi art - Craftland Demo (https://szadiart.itch.io/craftland-demo)
+tileset2: Merchant Shade - Free 16x16 Mini World Sprites (https://merchant-shade.itch.io/16x16-mini-world-sprites)
+
+player sprite: Namatnieks - Fantasy Knight (https://aamatniekss.itch.io/fantasy-knight-free-pixelart-animated-character)
+enemy sprites: LuizMelo - Monsters Creatures Fantasy (https://luizmelo.itch.io/monsters-creatures-fantasy)
+skeleton sprite: Jesse Munguia - Skeleton Sprite Pack (https://jesse-m.itch.io/skeleton-pack)
 
 Hudba:
 
