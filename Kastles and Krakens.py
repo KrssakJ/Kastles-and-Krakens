@@ -122,10 +122,12 @@ class MainGame():
         now = time.time()
         self.dt = now - self.prev_time
         self.prev_time = now
+        #print(self.dt)
         
     def game_loop(self):
         while self.running:
             self.clock.tick(60)
+            self.get_dt()
             self.get_events()
             self.change_pos()
             self.main_screen.blit(self.cur_map_image, (0,0))
@@ -338,10 +340,14 @@ class Player(NPC):
         self.direction_x = self.game.key_d - self.game.key_a
         self.direction_y = self.game.key_s - self.game.key_w
         
-        self.rect.x += self.direction_x * 3
+        # rect coordinates are integers, not floats;
+        # round() is an attempt to implement delta_time without breaking the game
+        self.rect.x += self.direction_x * 3 * round(self.game.dt * 60)
         self.check_wallsX()
-        self.rect.y += self.direction_y * 3
+        self.rect.y += self.direction_y * 3 * round(self.game.dt * 60)
         self.check_wallsY()
+        #print("X: ", str(self.direction_x), ", Y: ", str(self.direction_y))
+        #print("X: ", str(self.rect.x), ", Y: ", str(self.rect.y))
         
         self.check_edge()
 
@@ -418,11 +424,13 @@ class Enemy(NPC):
 class Walker(Enemy):
     # Simple enemy; if the player is spotted, it will follow the player in a straight line
     # Skeleton: slow walker
-    # Flying Eye: medium walker
+    # Flying Eye: medium/fast walker
     # Goblin: fast walker
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
         self.mvms = movement_speed
+        # mvmtimer limits enemies to 30FPS in order to input custom movement speeds
+        self.mvmtimer = 0
 
     def move(self):
         self.check_for_home()
@@ -455,10 +463,14 @@ class Walker(Enemy):
     def move_enemy(self):
         # a general movement function, direction depends on whether the enemy is chasing or idle
         # skoleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
-        self.rect.x += self.direction_x * 1.25
-        #self.check_wallsX()
-        self.rect.y += self.direction_y * 1.25
-        #self.check_wallsY()
+        if self.mvmtimer == 1:
+            self.rect.x += self.direction_x * self.mvms * round(self.game.dt * 60)
+            #self.check_wallsX()
+            self.rect.y += self.direction_y * self.mvms * round(self.game.dt * 60)
+            #self.check_wallsY()
+            self.mvmtimer = 0
+        else:
+            self.mvmtimer += 1
     
     def approximate_direction(self):
         # stops the sprite from "vibrating" (a.k.a. oscillating)

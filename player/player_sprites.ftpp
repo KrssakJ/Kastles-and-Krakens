@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "version": "0.6.7"
+  },
+  "savePath": "",
+  "images": [
+    {
+      "name": "player_back1.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_back1.png",
+      "folder": ""
+    },
+    {
+      "name": "player_back2.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_back2.png",
+      "folder": ""
+    },
+    {
+      "name": "player_back3.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_back3.png",
+      "folder": ""
+    },
+    {
+      "name": "player_back4.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_back4.png",
+      "folder": ""
+    },
+    {
+      "name": "player_front1.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_front1.png",
+      "folder": ""
+    },
+    {
+      "name": "player_front2.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_front2.png",
+      "folder": ""
+    },
+    {
+      "name": "player_front3.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_front3.png",
+      "folder": ""
+    },
+    {
+      "name": "player_front4.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_front4.png",
+      "folder": ""
+    },
+    {
+      "name": "player_left1.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_left1.png",
+      "folder": ""
+    },
+    {
+      "name": "player_left2.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_left2.png",
+      "folder": ""
+    },
+    {
+      "name": "player_left3.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_left3.png",
+      "folder": ""
+    },
+    {
+      "name": "player_left4.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_left4.png",
+      "folder": ""
+    },
+    {
+      "name": "player_right1.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_right1.png",
+      "folder": ""
+    },
+    {
+      "name": "player_right2.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_right2.png",
+      "folder": ""
+    },
+    {
+      "name": "player_right3.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_right3.png",
+      "folder": ""
+    },
+    {
+      "name": "player_right4.png",
+      "path": "C:/Users/jozko.krssak/Desktop/randomshit/player_right4.png",
+      "folder": ""
+    }
+  ],
+  "folders": [],
+  "packOptions": {
+    "textureName": "player_sprites",
+    "textureFormat": "png",
+    "removeFileExtension": false,
+    "prependFolderName": true,
+    "base64Export": false,
+    "tinify": false,
+    "tinifyKey": "",
+    "scale": 1,
+    "filter": "none",
+    "exporter": "JSON (hash)",
+    "fileName": "pack-result",
+    "savePath": "",
+    "width": 2048,
+    "height": 2048,
+    "fixedSize": false,
+    "powerOfTwo": false,
+    "padding": 0,
+    "extrude": 0,
+    "allowRotation": false,
+    "allowTrim": false,
+    "trimMode": "trim",
+    "alphaThreshold": "0",
+    "detectIdentical": false,
+    "packer": "MaxRectsBin",
+    "packerMethod": "BestShortSideFit"
+  }
+}
