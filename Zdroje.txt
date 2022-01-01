@@ -8,6 +8,7 @@ tileset2: Merchant Shade - Free 16x16 Mini World Sprites (https://merchant-shade
 player sprite: Namatnieks - Fantasy Knight (https://aamatniekss.itch.io/fantasy-knight-free-pixelart-animated-character)
 enemy sprites: LuizMelo - Monsters Creatures Fantasy (https://luizmelo.itch.io/monsters-creatures-fantasy)
 skeleton sprite: Jesse Munguia - Skeleton Sprite Pack (https://jesse-m.itch.io/skeleton-pack)
+worm sprite: LuizMelo - Fire Worm (https://luizmelo.itch.io/fire-worm)
 
 Hudba:
 

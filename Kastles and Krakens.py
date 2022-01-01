@@ -112,6 +112,8 @@ class MainGame():
         for enemy in enemy_list:
             if enemy[3] == "walker":
                 enemy = Walker(self, enemy[2], enemy[0], enemy[1], enemy[4], 4, enemy[5])
+            elif enemy[3] == "charger":
+                enemy = Charger(self, enemy[2], enemy[0], enemy[1], enemy[4], 8, enemy[5])
             #enemy = Enemy(self, enemy[0], enemy[1], enemy[2], enemy[3], 4, enemy[0])
             self.game_sprites.add(enemy)
         
@@ -207,6 +209,7 @@ class TileMap():
                         temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
                     if object.type == "enemy":
+                        #print(str(object.properties["hor_enemy"]))
                         enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
                         self.enemy_list.append(enemy_data)
                         #print(self.enemy_list)
@@ -232,19 +235,17 @@ class NPC(pygame.sprite.Sprite):
         super().__init__()
         self.game = game
         self.sourcefile = sourcefile + "_sprites.png"
-        self.load_frames(sourcefile, frames_per_side)
-
-        self.rect = self.image.get_rect(topleft = (anch_x, anch_y))
-
+        
         self.state_idle = True
         self.direction_x = 0
         self.direction_y = 0
         self.prev_time = 0
+        self.size_coef = 3 # default sprite size
 
-        self.cur_sprlist = self.frames_down
+        self.load_frames(sourcefile, frames_per_side)
+        self.rect = self.image.get_rect(topleft = (anch_x, anch_y))
 
     def load_frames(self, sourcefile, frames_per_side):
-        
         self.spritesheet = Spritesheet(self.sourcefile)
         self.frames_down = []
         self.frames_up = []
@@ -258,18 +259,21 @@ class NPC(pygame.sprite.Sprite):
                 parsed_frame = self.spritesheet.parse_sprite(sourcefile + self.sides[side_list_pos] + str(frame+1) + ".png")
                 framelist.append(parsed_frame)
             side_list_pos += 1
+        self.frames.clear()
         self.cur_frame = 0
         self.image = self.frames_down[self.cur_frame]
+        self.cur_sprlist = self.frames_down
 
     def update(self):
         self.draw_NPC()
         self.move()
 
     def draw_NPC(self):
+        # most sprites are 48*48px
         self.set_state()
         self.animate()
         self.size = self.image.get_size()
-        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*3, self.size[1]*3))
+        self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*self.size_coef, self.size[1]*self.size_coef))
         self.image = self.bigger_sprite
 
     def set_state(self):
@@ -331,6 +335,7 @@ class Player(NPC):
     # Maybe even add a small animation? That'd be nice
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side):
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
+        
 
     # Source: Christian Duenas - Pygame Game States Tutorial
     # https://www.youtube.com/watch?v=b_DkQrJxpck
@@ -342,9 +347,9 @@ class Player(NPC):
         
         # rect coordinates are integers, not floats;
         # round() is an attempt to implement delta_time without breaking the game
-        self.rect.x += self.direction_x * 3 * round(self.game.dt * 60)
+        self.rect.x += round(self.direction_x * 3 * self.game.dt * 60)
         self.check_wallsX()
-        self.rect.y += self.direction_y * 3 * round(self.game.dt * 60)
+        self.rect.y += round(self.direction_y * 3 * self.game.dt * 60)
         self.check_wallsY()
         #print("X: ", str(self.direction_x), ", Y: ", str(self.direction_y))
         #print("X: ", str(self.rect.x), ", Y: ", str(self.rect.y))
@@ -390,7 +395,15 @@ class Enemy(NPC):
     
 
     def move(self):
-        pass
+        self.check_for_home()
+        self.check_for_player() # this is going to check if the player is within some arbitrary range
+        if self.player_spotted == True:
+            self.chase_player() # this is going to use a pathfinding algorithm to chase the player
+        else:
+            if self.at_home == False:
+                self.return_home()
+            else:
+                self.wander()
         #self.find_pos() # this is going to find a new position to move to (within range)
         #self.move_enemy() # this is going to move the enemy to a new position after some arbitrary length of time has passed
 
@@ -432,17 +445,6 @@ class Walker(Enemy):
         # mvmtimer limits enemies to 30FPS in order to input custom movement speeds
         self.mvmtimer = 0
 
-    def move(self):
-        self.check_for_home()
-        self.check_for_player() # this is going to check if the player is within some arbitrary range
-        if self.player_spotted == True:
-            self.chase_player() # this is going to use a pathfinding algorithm to chase the player
-        elif self.player_spotted == False:
-            if self.at_home == False:
-                self.return_home()
-            else:
-                self.wander()
-
     def chase_player(self):
         # calculates the direction the enemy will move in during a chase
         self.detecX = self.game.player.rect.x - self.rect.x
@@ -464,9 +466,9 @@ class Walker(Enemy):
         # a general movement function, direction depends on whether the enemy is chasing or idle
         # skoleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
         if self.mvmtimer == 1:
-            self.rect.x += self.direction_x * self.mvms * round(self.game.dt * 60)
+            self.rect.x += round(self.direction_x * self.mvms * self.game.dt * 60)
             #self.check_wallsX()
-            self.rect.y += self.direction_y * self.mvms * round(self.game.dt * 60)
+            self.rect.y += round(self.direction_y * self.mvms * self.game.dt * 60)
             #self.check_wallsY()
             self.mvmtimer = 0
         else:
@@ -487,17 +489,62 @@ class Walker(Enemy):
         self.find_pos()
         self.move_enemy()
 
+    def return_home(self):
+        pass
+
+class Charger(Enemy):
+     #Complicated enemy; if the player is spotted, it will stay in place for 2 seconds, mark the player's location, and charge in a straight line
+     #Mushroom/Fungus: slow charger
+     #Worm: slow/medium charger, medium/large size
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
+        super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
+        self.mvms = movement_speed
+        self.size_coef = 4
+        self.load_charge_frames()
+    
+    def load_frames(self, sourcefile, frames_per_side):
+        self.spritesheet = Spritesheet(self.sourcefile)
+        self.frames_left = []
+        self.frames_right = []
+        self.frames = [self.frames_left, self.frames_right]
+        self.sides = ["_left","_right"]
+        side_list_pos = 0
+        for framelist in self.frames:
+            for frame in range(frames_per_side):
+                parsed_frame = self.spritesheet.parse_sprite(sourcefile + self.sides[side_list_pos] + str(frame+1) + ".png")
+                framelist.append(parsed_frame)
+            side_list_pos += 1
+        self.frames.clear()
+        self.cur_frame = 0
+        self.image = self.frames_right[self.cur_frame]
+        self.cur_sprlist = self.frames_right
+
+
+    def load_charge_frames(self):
+        pass
+
+    def chase_player(self):
+        self.play_charging_animation()
+        now = pygame.time.get_ticks()
+        if now - self.prev_time > 3000:
+            self.charge()
+
+    def play_charging_animation(self):
+        pass
+
+    def charge(self):
+        pass
+
+    def return_home(self):
+        pass
+
+    def wander(self):
+        pass
 
 #class Frog(Enemy):
     # Complicated enemy; if the player is spotted, it will mark the player's direction and jump towards them
     # Do I actually want to do this one? idk how it'd work with sprites
     # Slime?
-
-#class Charger(Enemy):
-    # Complicated enemy; if the player is spotted, it will stay in place for 2 seconds, mark the player's location, and charge in a straight line
-    # Mushroom/Fungus: slow charger
-
-
 
 
 
