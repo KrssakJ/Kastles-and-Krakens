@@ -1,5 +1,7 @@
 import pygame, pytmx
-import time, math
+import time as t
+import math as m
+import random as r
 import os, csv, json
 
 pygame.init()
@@ -16,7 +18,7 @@ class MainGame():
         self.game_HEIGHT = 960
         self.main_screen = pygame.display.set_mode((self.game_WIDTH, self.game_HEIGHT))
         self.clock = pygame.time.Clock()
-        self.prev_time = time.time()
+        self.prev_time = t.time()
         
         self.key_w = False
         self.key_a = False
@@ -121,7 +123,7 @@ class MainGame():
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
     def get_dt(self):
         # so far relatively unnecessary, likely to be removed in the future
-        now = time.time()
+        now = t.time()
         self.dt = now - self.prev_time
         self.prev_time = now
         #print(self.dt)
@@ -239,7 +241,8 @@ class NPC(pygame.sprite.Sprite):
         self.state_idle = True
         self.direction_x = 0
         self.direction_y = 0
-        self.prev_time = 0
+        self.animation_time = 0
+        self.stopping_time = 0
         self.size_coef = 3 # default sprite size
 
         self.load_frames(sourcefile, frames_per_side)
@@ -290,8 +293,8 @@ class NPC(pygame.sprite.Sprite):
         else:
             # Updates the current frame/cur_frame variable based on the amount of time that has passed
             now = pygame.time.get_ticks()
-            if now - self.prev_time > 200:
-                self.prev_time = now
+            if now - self.animation_time > 200:
+                self.animation_time = now
                 self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
 
             if self.direction_x > 0:
@@ -380,17 +383,15 @@ class Enemy(NPC):
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
         # Since the enemy's position is written in world_data, enemies don't need to track their position (at least in theory)
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
-        #print(sourcefile)
-        self.range = range*2
-        self.anch_x = anch_x
-        self.anch_y = anch_y
-        #print("i made an enemy")
-        #print("X: ", str(self.rect.x), "Y: ", self.rect.y)
+        self.range = int(range)
+        self.anch_x = int(anch_x)
+        self.anch_y = int(anch_y)
+        #self.new_pos = [self.rect.x,self.rect.y]
         self.at_home = True
         self.player_spotted = False
+        self.wandering = False
         self.alive = True
-        #self.cur_room = self.game.cur_room
-        #set_movementspeed()
+
 
     
 
@@ -401,21 +402,28 @@ class Enemy(NPC):
             self.chase_player() # this is going to use a pathfinding algorithm to chase the player
         else:
             if self.at_home == False:
+                #print("I'm going home")
                 self.return_home()
             else:
+                #print("I'm wandering")
                 self.wander()
         #self.find_pos() # this is going to find a new position to move to (within range)
         #self.move_enemy() # this is going to move the enemy to a new position after some arbitrary length of time has passed
 
     def check_for_home(self):
-        if (self.rect.x in (self.anch_x-2, self.anch_x +2)) or (self.rect.y in (self.anch_y-2, self.anch_y+2)):
-            self.at_home = False
-        else:
+        if ((self.anch_x - self.range) <= self.rect.x <= (self.anch_x + self.range)):
+            #print("i am home")
             self.at_home = True
+        elif ((self.anch_y - self.range) <= self.rect.y <= (self.anch_y + self.range)):
+            #print("i am home")
+            self.at_home = True
+        else:
+            #print("i am not home")
+            self.at_home = False
 
     def check_for_player(self):
         # calculates the distance between the enemy's rect and the player's rect
-        self.distance = math.hypot(self.rect.x - self.game.player.rect.x, self.rect.y - self.game.player.rect.y)
+        self.distance = m.hypot(self.rect.x - self.game.player.rect.x, self.rect.y - self.game.player.rect.y)
         if self.distance <= self.range:
             self.player_spotted = True
             #print("I see you!")
@@ -423,16 +431,84 @@ class Enemy(NPC):
             self.player_spotted = False
             #print("where did you go?")
 
-    def set_anchor(self):
-        self.anch_x = self.rect.x
-        self.anch_y = self.rect.y
+    def return_home(self):
+        self.new_pos = [self.anch_x, self.anch_y]
+        self.move_to_new_pos()
 
     def wander(self):
-        pass
- 
+        if self.range == 0:
+            pass
+        elif self.wandering == False:
+            self.find_pos()
+            self.move_to_new_pos()
+        else:
+            #print("hey I'm wandering")
+            self.move_to_new_pos()
+            
     def find_pos(self):
         # finds a new target position within range of anchor
+        #print("I'm looking for a new position")
+        direction = self.find_direction()
+        self.find_distance(direction)
+    def find_direction(self):
+        directions = ["up", "down", "left", "right"]
+        new_direction = r.choice(directions)
+        return new_direction
+    def find_distance(self, direction):
+        # this code is intentionally ugly, right now I just want this to work
+        # I WILL OPTIMIZE THIS LATER I PROMISE
+        if direction == "up":
+            random_pos = r.randint(int(self.anch_y-self.range), self.rect.y)
+            self.new_pos = [self.rect.x, random_pos]
+        elif direction == "down":
+            random_pos = r.randint(self.rect.y, int(self.anch_y+self.range))
+            self.new_pos = [self.rect.x, random_pos]
+        elif direction == "left":
+            random_pos = r.randint(int(self.anch_x-self.range), self.rect.x)
+            self.new_pos = [random_pos, self.rect.y]
+        elif direction == "right":
+            random_pos = r.randint(self.rect.x, int(self.anch_x+self.range))
+            self.new_pos = [random_pos, self.rect.y]
+
+    def move_to_new_pos(self):
+        # first, check if the target has been reached
+        if (self.new_pos[0] == self.rect.x) and (self.new_pos[1] == self.rect.y):
+            # reset directions
+            #print("i got to my spot")
+            self.direction_x = 0
+            self.direction_y = 0
+            self.wandering = False
+        else:
+            #print("i have decided to find a new spot")
+            self.wandering = True
+            self.create_new_direction()
+            self.move_enemy()
+            
+
+
+    def create_new_direction(self):
+        rough_direction_x = self.new_pos[0] - self.rect.x
+        if rough_direction_x > 0:
+            self.direction_x = 1
+        elif rough_direction_x == 0:
+            self.direction_x = 0
+        else:
+            self.direction_x = -1
+
+        rough_direction_y = self.new_pos[1] - self.rect.y
+        if rough_direction_y > 0:
+            self.direction_y = 1
+        elif rough_direction_y == 0:
+            self.direction_y = 0
+        else:
+            self.direction_y = -1
+
+        #print("X: ", self.direction_x, "Y: ", self.direction_y)
+
+    def move_enemy(self):
         pass
+
+
 
 class Walker(Enemy):
     # Simple enemy; if the player is spotted, it will follow the player in a straight line
@@ -441,7 +517,8 @@ class Walker(Enemy):
     # Goblin: fast walker
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
-        self.mvms = movement_speed
+        #self.mvms = movement_speed
+        self.mvms = 1
         # mvmtimer limits enemies to 30FPS in order to input custom movement speeds
         self.mvmtimer = 0
 
@@ -460,11 +537,21 @@ class Walker(Enemy):
             self.direction_y = 1
 
         self.approximate_direction()
+        """
+        now = pygame.time.get_ticks()
+        if now - self.stopping_time > 2000:
+            self.stopping_time = now
+        elif now - self.stopping_time > 1000:
+        """    
+            
         self.move_enemy()
+        #print(str(self.sourcefile) + str(now))
+            
 
     def move_enemy(self):
         # a general movement function, direction depends on whether the enemy is chasing or idle
         # skoleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
+        """
         if self.mvmtimer == 1:
             self.rect.x += round(self.direction_x * self.mvms * self.game.dt * 60)
             #self.check_wallsX()
@@ -473,7 +560,13 @@ class Walker(Enemy):
             self.mvmtimer = 0
         else:
             self.mvmtimer += 1
-    
+        """
+        self.rect.x += round(self.direction_x * self.mvms * self.game.dt * 60)
+            #self.check_wallsX()
+        self.rect.y += round(self.direction_y * self.mvms * self.game.dt * 60)
+
+        #print("Rect_X: ", self.rect.x, "Rect_Y: ", self.rect.y)
+
     def approximate_direction(self):
         # stops the sprite from "vibrating" (a.k.a. oscillating)
         if self.detecX <= 2 and self.detecX >= -2:
@@ -481,7 +574,7 @@ class Walker(Enemy):
         if self.detecY <= 2 and self.detecY >= -2:
             self.direction_y = 0
 
-    def wander(self):
+    def wander_alt(self):
         # idle movement, plays while the player is out of range
         self.direction_x, self.direction_y = 0, 0
         self.state_idle = True
@@ -489,7 +582,7 @@ class Walker(Enemy):
         self.find_pos()
         self.move_enemy()
 
-    def return_home(self):
+    def return_home_alt(self):
         pass
 
 class Charger(Enemy):
@@ -500,7 +593,7 @@ class Charger(Enemy):
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
         self.mvms = movement_speed
         self.size_coef = 4
-        self.load_charge_frames()
+        
     
     def load_frames(self, sourcefile, frames_per_side):
         self.spritesheet = Spritesheet(self.sourcefile)
@@ -520,8 +613,6 @@ class Charger(Enemy):
         self.cur_sprlist = self.frames_right
 
 
-    def load_charge_frames(self):
-        pass
 
     def chase_player(self):
         self.play_charging_animation()
