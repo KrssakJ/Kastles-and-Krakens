@@ -242,7 +242,6 @@ class NPC(pygame.sprite.Sprite):
         self.direction_x = 0
         self.direction_y = 0
         self.animation_time = 0
-        self.stopping_time = 0
         self.size_coef = 3 # default sprite size
 
         self.load_frames(sourcefile, frames_per_side)
@@ -390,6 +389,8 @@ class Enemy(NPC):
         self.at_home = True
         self.player_spotted = False
         self.wandering = False
+        self.wander_delay = False
+        self.wander_time = 0.0
         self.alive = True
 
 
@@ -438,16 +439,17 @@ class Enemy(NPC):
     def wander(self):
         if self.range == 0:
             pass
+        elif self.wander_delay == True:
+            self.time_delay()
         elif self.wandering == False:
             self.find_pos()
             self.move_to_new_pos()
         else:
-            #print("hey I'm wandering")
             self.move_to_new_pos()
-            
+
     def find_pos(self):
         # finds a new target position within range of anchor
-        #print("I'm looking for a new position")
+        
         direction = self.find_direction()
         self.find_distance(direction)
     def find_direction(self):
@@ -456,35 +458,45 @@ class Enemy(NPC):
         return new_direction
     def find_distance(self, direction):
         # this code is intentionally ugly, right now I just want this to work
+        # the purpose of bottom_range/top_range is to ensure that the sprite doesn't walk off screen
         # I WILL OPTIMIZE THIS LATER I PROMISE
         if direction == "up":
-            random_pos = r.randint(int(self.anch_y-self.range), self.rect.y)
+            bottom_range = int(self.anch_y-self.range)
+            if bottom_range < 0:
+                bottom_range = 0
+            random_pos = r.randint(bottom_range, self.rect.y)
             self.new_pos = [self.rect.x, random_pos]
         elif direction == "down":
-            random_pos = r.randint(self.rect.y, int(self.anch_y+self.range))
+            top_range = int(self.anch_y+self.range)
+            if top_range > (self.game.game_HEIGHT - (self.size[1]*self.size_coef)):
+                top_range = self.game.game_HEIGHT - (self.size[1]*self.size_coef)
+            random_pos = r.randint(self.rect.y, top_range)
             self.new_pos = [self.rect.x, random_pos]
         elif direction == "left":
-            random_pos = r.randint(int(self.anch_x-self.range), self.rect.x)
+            bottom_range = int(self.anch_x-self.range)
+            if bottom_range < 0:
+                bottom_range = 0
+            random_pos = r.randint(bottom_range, self.rect.x)
             self.new_pos = [random_pos, self.rect.y]
         elif direction == "right":
-            random_pos = r.randint(self.rect.x, int(self.anch_x+self.range))
+            top_range = int(self.anch_x+self.range)
+            if top_range > (self.game.game_WIDTH - (self.size[0]*self.size_coef)):
+                top_range = self.game.game_WIDTH - (self.size[0]*self.size_coef)
+            random_pos = r.randint(self.rect.x, top_range)
             self.new_pos = [random_pos, self.rect.y]
 
     def move_to_new_pos(self):
         # first, check if the target has been reached
         if (self.new_pos[0] == self.rect.x) and (self.new_pos[1] == self.rect.y):
             # reset directions
-            #print("i got to my spot")
             self.direction_x = 0
             self.direction_y = 0
             self.wandering = False
+            self.time_delay()
         else:
-            #print("i have decided to find a new spot")
             self.wandering = True
             self.create_new_direction()
             self.move_enemy()
-            
-
 
     def create_new_direction(self):
         rough_direction_x = self.new_pos[0] - self.rect.x
@@ -502,13 +514,19 @@ class Enemy(NPC):
             self.direction_y = 0
         else:
             self.direction_y = -1
-
-        #print("X: ", self.direction_x, "Y: ", self.direction_y)
-
     def move_enemy(self):
         pass
 
-
+    def time_delay(self):
+        time_delay = 1
+        dt = self.game.dt
+        self.wander_time += dt
+        if self.wander_time > time_delay:
+            #print("it's been 1 second")
+            self.wander_delay = False
+            self.wander_time = 0
+        else:
+            self.wander_delay = True
 
 class Walker(Enemy):
     # Simple enemy; if the player is spotted, it will follow the player in a straight line
