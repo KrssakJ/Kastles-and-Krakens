@@ -27,6 +27,8 @@ class MainGame():
         self.key_p = False
 
         self.player = Player(self, "player", 624, 600, 0, 4)
+        #self.player_alt = Player(self, "player", 624, 600, 0, 4)
+        self.based_phoenix = pygame.image.load("phoenix is based.png")
         
         # player's current position in relation to the overworld, X and Y variables
         self.ow_posX = 2
@@ -34,10 +36,11 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         self.prev_ow_pos = []
         
-        self.states = ["roaming", "battle", "menu"]
-        self.game_state = self.states[0]
+        self.roaming = True
+        #self.game_state = self.states[0]
 
         self.load_rooms_betterer()
+        self.load_battle_sprites()
 
     def get_events(self):
         for event in pygame.event.get():
@@ -53,7 +56,7 @@ class MainGame():
                 elif event.key == pygame.K_d:
                     self.key_d = True
                 elif event.key == pygame.K_p:
-                    self.player.spr_update()
+                    self.roaming = False
                 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
@@ -65,7 +68,7 @@ class MainGame():
                 elif event.key == pygame.K_d:
                     self.key_d = False
                 elif event.key == pygame.K_p:
-                    self.key_p = False
+                    self.roaming = True
     
     def change_pos(self):
         # Checks if the player has gone into a different room
@@ -96,6 +99,7 @@ class MainGame():
                     rowlist.append(roomdata)
                 else:
                     roomdata = Room(self, r)
+                    #print(roomdata.enemy_list)
                     rowlist.append(roomdata)
             self.world_data.append(rowlist)
         #print(self.world_data)
@@ -104,6 +108,11 @@ class MainGame():
         with open("maplist.csv") as r:
             loaded = csv.reader(r)  # reads the file, returns idk a number?
             self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
+
+    def load_battle_sprites(self):
+        pass
+        #self.game_battle_sprites = pygame.sprite.Group()
+        #self.game_battle_sprites.add(self.player_alt)
 
     def load_sprites(self):
         self.game_sprites = pygame.sprite.Group()
@@ -116,6 +125,7 @@ class MainGame():
                 enemy = Walker(self, enemy[2], enemy[0], enemy[1], enemy[4], 4, enemy[5])
             elif enemy[3] == "charger":
                 enemy = Charger(self, enemy[2], enemy[0], enemy[1], enemy[4], 8, enemy[5])
+                print(enemy_list)
             #enemy = Enemy(self, enemy[0], enemy[1], enemy[2], enemy[3], 4, enemy[0])
             self.game_sprites.add(enemy)
         
@@ -134,9 +144,11 @@ class MainGame():
             self.get_dt()
             self.get_events()
             self.change_pos()
-            self.main_screen.blit(self.cur_map_image, (0,0))
+            if self.roaming == True:
+                self.main_screen.blit(self.cur_map_image, (0,0))
+            else:
+                self.main_screen.blit(self.based_phoenix, (0,0))
             self.game_sprites.update()
-            #self.battle_sprites.update()
             self.game_sprites.draw(self.main_screen)
             #self.battle_sprites.draw(self.main_screen)
             #### IF overworld: x, elif battlephase: Y
@@ -211,8 +223,10 @@ class TileMap():
                         temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
                     if object.type == "enemy":
+                        print("I'm loading an enemy!")
                         #print(str(object.properties["hor_enemy"]))
                         enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
+                        #print(object.properties["enemy_type"])
                         self.enemy_list.append(enemy_data)
                         #print(self.enemy_list)
     
@@ -401,6 +415,7 @@ class Enemy(NPC):
         self.check_for_player() # this is going to check if the player is within some arbitrary range
         if self.player_spotted == True:
             self.chase_player() # this is going to use a pathfinding algorithm to chase the player
+            self.check_for_collision()
         else:
             if self.at_home == False:
                 #print("I'm going home")
@@ -431,6 +446,10 @@ class Enemy(NPC):
         else:
             self.player_spotted = False
             #print("where did you go?")
+
+    def check_for_collision(self):
+        if self.rect.colliderect(self.game.player):
+            print("I got you!")
 
     def return_home(self):
         self.new_pos = [self.anch_x, self.anch_y]
@@ -570,10 +589,14 @@ class Walker(Enemy):
         # a general movement function, direction depends on whether the enemy is chasing or idle
         # skoleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
         """
+        x_movement = round(self.direction_x * self.mvms * self.game.dt * 60)
+        y_movement = round(self.direction_y * self.mvms * self.game.dt * 60)
+        #print(self.sourcefile, "x: ", x_movement, "Y: ", y_movement)
+
         if self.mvmtimer == 1:
-            self.rect.x += round(self.direction_x * self.mvms * self.game.dt * 60)
+            self.rect.x += x_movement
             #self.check_wallsX()
-            self.rect.y += round(self.direction_y * self.mvms * self.game.dt * 60)
+            self.rect.y += y_movement
             #self.check_wallsY()
             self.mvmtimer = 0
         else:
@@ -582,7 +605,7 @@ class Walker(Enemy):
         self.rect.x += round(self.direction_x * self.mvms * self.game.dt * 60)
             #self.check_wallsX()
         self.rect.y += round(self.direction_y * self.mvms * self.game.dt * 60)
-
+        
         #print("Rect_X: ", self.rect.x, "Rect_Y: ", self.rect.y)
 
     def approximate_direction(self):
@@ -592,16 +615,6 @@ class Walker(Enemy):
         if self.detecY <= 2 and self.detecY >= -2:
             self.direction_y = 0
 
-    def wander_alt(self):
-        # idle movement, plays while the player is out of range
-        self.direction_x, self.direction_y = 0, 0
-        self.state_idle = True
-
-        self.find_pos()
-        self.move_enemy()
-
-    def return_home_alt(self):
-        pass
 
 class Charger(Enemy):
      #Complicated enemy; if the player is spotted, it will stay in place for 2 seconds, mark the player's location, and charge in a straight line
@@ -611,6 +624,7 @@ class Charger(Enemy):
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
         self.mvms = movement_speed
         self.size_coef = 4
+        print("I made a worm")
         
     
     def load_frames(self, sourcefile, frames_per_side):
@@ -630,7 +644,27 @@ class Charger(Enemy):
         self.image = self.frames_right[self.cur_frame]
         self.cur_sprlist = self.frames_right
 
+    def animate(self):
+        # If the NPC is idle, the program doesn't iterate through the list of frames
+        if self.state_idle:
+            self.cur_frame = 0
+        else:
+            # Updates the current frame/cur_frame variable based on the amount of time that has passed
+            now = pygame.time.get_ticks()
+            if now - self.animation_time > 200:
+                self.animation_time = now
+                self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
 
+            if self.direction_x > 0:
+                self.cur_sprlist = self.frames_right
+            elif self.direction_x < 0:
+                self.cur_sprlist = self.frames_left
+        self.image = self.cur_sprlist[self.cur_frame]
+
+    def move_enemy(self):
+        # a general movement function, direction depends on whether the enemy is chasing or idle
+        self.rect.x += round(self.direction_x * self.mvms * self.game.dt * 60)
+        self.rect.y += round(self.direction_y * self.mvms * self.game.dt * 60)
 
     def chase_player(self):
         self.play_charging_animation()
@@ -644,11 +678,7 @@ class Charger(Enemy):
     def charge(self):
         pass
 
-    def return_home(self):
-        pass
-
-    def wander(self):
-        pass
+    
 
 #class Frog(Enemy):
     # Complicated enemy; if the player is spotted, it will mark the player's direction and jump towards them
