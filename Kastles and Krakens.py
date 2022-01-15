@@ -76,6 +76,7 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         if self.cur_ow_pos == self.prev_ow_pos:
             return
+        #print(self.ow_posX, self.ow_posY)
         self.cur_room = self.world_data[self.ow_posY][self.ow_posX]
         self.cur_map_image = self.cur_room.map.load_map()
         self.cur_wall_list = self.cur_room.wall_list
@@ -223,7 +224,7 @@ class TileMap():
                         temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
                         self.wall_list.append(temp_rect)
                     if object.type == "enemy":
-                        print("I'm loading an enemy!")
+                        #print("I'm loading an enemy!")
                         #print(str(object.properties["hor_enemy"]))
                         enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
                         #print(object.properties["enemy_type"])
@@ -254,12 +255,16 @@ class NPC(pygame.sprite.Sprite):
         
         self.state_idle = True
         self.direction_x = 0
+        self.position_x = anch_x
         self.direction_y = 0
+        self.position_y = anch_y
         self.animation_time = 0
         self.size_coef = 3 # default sprite size
+        #print(self.position_x, self.position_y)
 
         self.load_frames(sourcefile, frames_per_side)
         self.rect = self.image.get_rect(topleft = (anch_x, anch_y))
+        print(self.rect.x, self.rect.y)
 
     def load_frames(self, sourcefile, frames_per_side):
         self.spritesheet = Spritesheet(self.sourcefile)
@@ -363,9 +368,13 @@ class Player(NPC):
         
         # rect coordinates are integers, not floats;
         # round() is an attempt to implement delta_time without breaking the game
-        self.rect.x += round(self.direction_x * 3 * self.game.dt * 60)
+        self.position_x += self.direction_x * 3 * self.game.dt * 60
+        self.rect.x = int(self.position_x)
+        #print(self.rect.x)
         self.check_wallsX()
-        self.rect.y += round(self.direction_y * 3 * self.game.dt * 60)
+        self.position_y += self.direction_y * 3 * self.game.dt * 60
+        self.rect.y = int(self.position_y)
+        #print(self.rect.y)
         self.check_wallsY()
         #print("X: ", str(self.direction_x), ", Y: ", str(self.direction_y))
         #print("X: ", str(self.rect.x), ", Y: ", str(self.rect.y))
@@ -375,18 +384,25 @@ class Player(NPC):
     def check_edge(self):
         ### TO DO:
         # Check the player's position using the self.rect variable
-        if self.rect.x <= 16: #player approaches left side
+        if self.position_x <= 16: #player approaches left side
             self.game.ow_posX -= 1
+            self.position_x = 1180
             self.rect.x = 1180
-        elif self.rect.x >= 1232: #player approaches right side
+            print("moving left")
+        elif self.position_x >= 1232: #player approaches right side
             self.game.ow_posX += 1
-            self.rect.x = 80
-        elif self.rect.y <= 16: #player approaches top side
+            self.position_x = 80
+            print("moving right")
+        elif self.position_y <= 16: #player approaches top side
             self.game.ow_posY -= 1
+            self.position_y = 880
             self.rect.y = 880
-        elif self.rect.y >= 912: #player approaches bottom side
+            print("moving up")
+        elif self.position_y >= 912: #player approaches bottom side
             self.game.ow_posY += 1
+            self.position_y = 80
             self.rect.y = 80
+            print("moving down")
 
 
 class Enemy(NPC):
@@ -414,23 +430,21 @@ class Enemy(NPC):
         self.check_for_home()
         self.check_for_player() # this is going to check if the player is within some arbitrary range
         if self.player_spotted == True:
+            self.reset_timers()
             self.chase_player() # this is going to use a pathfinding algorithm to chase the player
             self.check_for_collision()
         else:
             if self.at_home == False:
-                #print("I'm going home")
+                #print(self.sourcefile, "I'm going home")
                 self.return_home()
             else:
-                #print("I'm wandering")
+                #print(self.sourcefile, "I'm home")
                 self.wander()
         #self.find_pos() # this is going to find a new position to move to (within range)
         #self.move_enemy() # this is going to move the enemy to a new position after some arbitrary length of time has passed
 
     def check_for_home(self):
-        if ((self.anch_x - self.range) <= self.rect.x <= (self.anch_x + self.range)):
-            #print("i am home")
-            self.at_home = True
-        elif ((self.anch_y - self.range) <= self.rect.y <= (self.anch_y + self.range)):
+        if ((self.anch_x - self.range) <= self.position_x <= (self.anch_x + self.range)) and ((self.anch_y - self.range) <= self.rect.y <= (self.anch_y + self.range)):
             #print("i am home")
             self.at_home = True
         else:
@@ -439,7 +453,7 @@ class Enemy(NPC):
 
     def check_for_player(self):
         # calculates the distance between the enemy's rect and the player's rect
-        self.distance = m.hypot(self.rect.x - self.game.player.rect.x, self.rect.y - self.game.player.rect.y)
+        self.distance = m.hypot(self.position_x - self.game.player.rect.x, self.position_y - self.game.player.rect.y)
         if self.distance <= self.range:
             self.player_spotted = True
             #print("I see you!")
@@ -449,8 +463,8 @@ class Enemy(NPC):
 
     def check_for_collision(self):
         if self.rect.colliderect(self.game.player):
-            print("I got you!")
-
+            #print("I got you!")
+            pass
     def return_home(self):
         self.new_pos = [self.anch_x, self.anch_y]
         self.move_to_new_pos()
@@ -518,7 +532,7 @@ class Enemy(NPC):
             self.move_enemy()
 
     def create_new_direction(self):
-        rough_direction_x = self.new_pos[0] - self.rect.x
+        rough_direction_x = self.new_pos[0] - self.position_x
         if rough_direction_x > 0:
             self.direction_x = 1
         elif rough_direction_x == 0:
@@ -526,7 +540,7 @@ class Enemy(NPC):
         else:
             self.direction_x = -1
 
-        rough_direction_y = self.new_pos[1] - self.rect.y
+        rough_direction_y = self.new_pos[1] - self.position_y
         if rough_direction_y > 0:
             self.direction_y = 1
         elif rough_direction_y == 0:
@@ -537,15 +551,18 @@ class Enemy(NPC):
         pass
 
     def time_delay(self):
+        #print("I'm waiting")
         time_delay = 1
         dt = self.game.dt
         self.wander_time += dt
         if self.wander_time > time_delay:
             #print("it's been 1 second")
-            self.wander_delay = False
-            self.wander_time = 0
+            self.reset_timers()
         else:
             self.wander_delay = True
+    def reset_timers(self):
+        self.wander_delay = False
+        self.wander_time = 0
 
 class Walker(Enemy):
     # Simple enemy; if the player is spotted, it will follow the player in a straight line
@@ -561,8 +578,8 @@ class Walker(Enemy):
 
     def chase_player(self):
         # calculates the direction the enemy will move in during a chase
-        self.detecX = self.game.player.rect.x - self.rect.x
-        self.detecY = self.game.player.rect.y - self.rect.y
+        self.detecX = self.game.player.rect.x - self.position_x
+        self.detecY = self.game.player.rect.y - self.position_y
 
         if self.detecX < 0:
             self.direction_x = -1
@@ -602,9 +619,12 @@ class Walker(Enemy):
         else:
             self.mvmtimer += 1
         """
-        self.rect.x += round(self.direction_x * self.mvms * self.game.dt * 60)
+        self.position_x += self.direction_x * self.mvms * self.game.dt * 60
+        #print(int(self.direction_x * self.mvms * self.game.dt * 60))
+        self.rect.x = int(self.position_x)
             #self.check_wallsX()
-        self.rect.y += round(self.direction_y * self.mvms * self.game.dt * 60)
+        self.position_y += self.direction_y * self.mvms * self.game.dt * 60
+        self.rect.y = int(self.position_y)
         
         #print("Rect_X: ", self.rect.x, "Rect_Y: ", self.rect.y)
 
@@ -624,7 +644,7 @@ class Charger(Enemy):
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
         self.mvms = movement_speed
         self.size_coef = 4
-        print("I made a worm")
+        #print("I made a worm")
         
     
     def load_frames(self, sourcefile, frames_per_side):
@@ -663,8 +683,10 @@ class Charger(Enemy):
 
     def move_enemy(self):
         # a general movement function, direction depends on whether the enemy is chasing or idle
-        self.rect.x += round(self.direction_x * self.mvms * self.game.dt * 60)
-        self.rect.y += round(self.direction_y * self.mvms * self.game.dt * 60)
+        self.position_x += self.direction_x * self.mvms * self.game.dt * 60
+        self.rect.x = int(self.position_x)
+        self.position_y += self.direction_y * self.mvms * self.game.dt * 60
+        self.rect.y = int(self.position_y)
 
     def chase_player(self):
         self.play_charging_animation()
@@ -683,6 +705,7 @@ class Charger(Enemy):
 #class Frog(Enemy):
     # Complicated enemy; if the player is spotted, it will mark the player's direction and jump towards them
     # Do I actually want to do this one? idk how it'd work with sprites
+    # not entirely necessary, 2 enemy types is enough
     # Slime?
 
 
