@@ -264,7 +264,7 @@ class NPC(pygame.sprite.Sprite):
 
         self.load_frames(sourcefile, frames_per_side)
         self.rect = self.image.get_rect(topleft = (anch_x, anch_y))
-        print(self.rect.x, self.rect.y)
+        #print(self.rect.x, self.rect.y)
 
     def load_frames(self, sourcefile, frames_per_side):
         self.spritesheet = Spritesheet(self.sourcefile)
@@ -430,10 +430,12 @@ class Enemy(NPC):
         self.check_for_home()
         self.check_for_player() # this is going to check if the player is within some arbitrary range
         if self.player_spotted == True:
+            #print("I see you!")
             self.reset_timers()
             self.chase_player() # this is going to use a pathfinding algorithm to chase the player
             self.check_for_collision()
         else:
+            #print("I'm walking.")
             if self.at_home == False:
                 #print(self.sourcefile, "I'm going home")
                 self.return_home()
@@ -520,19 +522,23 @@ class Enemy(NPC):
 
     def move_to_new_pos(self):
         # first, check if the target has been reached
-        if (self.new_pos[0] == self.rect.x) and (self.new_pos[1] == self.rect.y):
+        # this needs to be broader, likely candidate for the oscillation issue IT TOTALLY FUCKING WAS LET'S GO
+        if ((self.new_pos[0]-2) <= self.rect.x <= (self.new_pos[0]+2)) and (self.new_pos[1]-2) <= self.rect.y <= (self.new_pos[1]+2):
+            print("I reached my target")
             # reset directions
             self.direction_x = 0
             self.direction_y = 0
             self.wandering = False
             self.time_delay()
         else:
-            self.wandering = True
+            if self.player_spotted == False:
+                print("I'm wandering")
+                self.wandering = True
             self.create_new_direction()
             self.move_enemy()
 
     def create_new_direction(self):
-        rough_direction_x = self.new_pos[0] - self.position_x
+        rough_direction_x = self.new_pos[0] - self.rect.x
         if rough_direction_x > 0:
             self.direction_x = 1
         elif rough_direction_x == 0:
@@ -540,7 +546,7 @@ class Enemy(NPC):
         else:
             self.direction_x = -1
 
-        rough_direction_y = self.new_pos[1] - self.position_y
+        rough_direction_y = self.new_pos[1] - self.rect.y
         if rough_direction_y > 0:
             self.direction_y = 1
         elif rough_direction_y == 0:
@@ -578,6 +584,7 @@ class Walker(Enemy):
 
     def chase_player(self):
         # calculates the direction the enemy will move in during a chase
+        """
         self.detecX = self.game.player.rect.x - self.position_x
         self.detecY = self.game.player.rect.y - self.position_y
 
@@ -589,38 +596,36 @@ class Walker(Enemy):
             self.direction_y = -1
         elif self.detecY > 0:
             self.direction_y = 1
-
-        self.approximate_direction()
         """
-        now = pygame.time.get_ticks()
-        if now - self.stopping_time > 2000:
-            self.stopping_time = now
-        elif now - self.stopping_time > 1000:
-        """    
-            
-        self.move_enemy()
+        self.new_pos = [self.game.player.rect.x, self.game.player.rect.y]
+        #print(self.new_pos)                # the new_pos part is working as intended
+        self.approximate_direction()
+        # aproximate direction is also working as intended
+        # that means the problem lies in the movement function
+        self.move_to_new_pos()
+
+        
+        #self.move_enemy()
         #print(str(self.sourcefile) + str(now))
             
 
     def move_enemy(self):
         # a general movement function, direction depends on whether the enemy is chasing or idle
-        # skoleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
+        # skeleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
         """
-        x_movement = round(self.direction_x * self.mvms * self.game.dt * 60)
-        y_movement = round(self.direction_y * self.mvms * self.game.dt * 60)
-        #print(self.sourcefile, "x: ", x_movement, "Y: ", y_movement)
-
         if self.mvmtimer == 1:
-            self.rect.x += x_movement
+            self.position_x += self.direction_x * self.mvms * self.game.dt * 60
+            self.rect.x = self.position_x
             #self.check_wallsX()
-            self.rect.y += y_movement
+            self.position_y += self.direction_y * self.mvms * self.game.dt * 60
+            self.rect.y = self.position_y
             #self.check_wallsY()
             self.mvmtimer = 0
         else:
             self.mvmtimer += 1
         """
         self.position_x += self.direction_x * self.mvms * self.game.dt * 60
-        #print(int(self.direction_x * self.mvms * self.game.dt * 60))
+        #print(int(self.game.dt * 60))
         self.rect.x = int(self.position_x)
             #self.check_wallsX()
         self.position_y += self.direction_y * self.mvms * self.game.dt * 60
@@ -630,10 +635,13 @@ class Walker(Enemy):
 
     def approximate_direction(self):
         # stops the sprite from "vibrating" (a.k.a. oscillating)
-        if self.detecX <= 2 and self.detecX >= -2:
+        # this function needs to be expanded to include the return_home() function
+        if self.new_pos[0]-2 <= self.rect.x <= self.new_pos[0]+2:
             self.direction_x = 0
-        if self.detecY <= 2 and self.detecY >= -2:
+            #print("X is close enough")
+        if self.new_pos[1]-2 <= self.rect.y <= self.new_pos[1]+2:
             self.direction_y = 0
+            #print("Y is close enough")
 
 
 class Charger(Enemy):
