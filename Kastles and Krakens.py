@@ -195,7 +195,7 @@ class Room():
         self.game = game
         self.roomname = os.path.join(self.game.room_dir, (roomname + ".tmx"))
         self.map = TileMap(self.roomname)
-        self.map.render_map()
+        self.map.render_objects()
         
         self.wall_list = self.map.wall_list
         self.enemy_list = self.map.enemy_list
@@ -213,23 +213,24 @@ class TileMap():
         self.height = tm.height * tm.tileheight
         self.tmxdata = tm
     
-    def render_map(self):
-        for layer in self.tmxdata.visible_layers:
-            if isinstance(layer, pytmx.TiledObjectGroup):
-                for object in self.tmxdata.objects:
-                    # object properties: id (integer); name,type (strings); x,y,width,height (floats); object.properties (dictionary)
-                    # object.properties is a dictionary that displays pairs of data
-                    if object.type == "wall":
-                        # The 32px offset is due to the colliderect function - it's based off of the coordinates of the top left corner
-                        temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
-                        self.wall_list.append(temp_rect)
-                    if object.type == "enemy":
-                        #print("I'm loading an enemy!")
-                        #print(str(object.properties["hor_enemy"]))
-                        enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
-                        #print(object.properties["enemy_type"])
-                        self.enemy_list.append(enemy_data)
-                        #print(self.enemy_list)
+    def render_objects(self):
+        #for layer in self.tmxdata.visible_layers:
+            #if isinstance(layer, pytmx.TiledObjectGroup):
+            # if there are multiple object layers, the program will go through every object multiple times
+        for object in self.tmxdata.objects:
+            # object properties: id (integer); name,type (strings); x,y,width,height (floats); object.properties (dictionary)
+            # object.properties is a dictionary that displays pairs of data
+            if object.type == "wall":
+                # The 32px offset is due to the colliderect function - it's based off of the coordinates of the top left corner
+                temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
+                self.wall_list.append(temp_rect)
+            if object.type == "enemy":
+                #print("I'm loading an enemy!")
+                #print(str(object.properties["hor_enemy"]))
+                enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
+                #print(object.properties["enemy_type"])
+                self.enemy_list.append(enemy_data)
+                #print(self.enemy_list)
     
     def load_map(self):
         temp_surface = pygame.Surface((self.width, self.height))
@@ -335,9 +336,15 @@ class NPC(pygame.sprite.Sprite):
                 if self.direction_x > 0:
                     #print("collision right side")
                     self.rect.right = wall.left
+                    self.position_x = wall.left
                 elif self.direction_x < 0:
                     #print("collision left side")
                     self.rect.left = wall.right
+                    self.position_x = wall.right
+                elif self.direction_x == 0:
+                    # This acts as a workiaround for an issue with wall collision. As I do not have enough information about the way pygame's colliderect function works, this workaround may end up permanent. I don't care.
+                    self.rect.right = wall.left
+                    self.position_x = wall.left
 
     def check_wallsY(self):
         for wall in self.cur_wall_list:
@@ -345,9 +352,15 @@ class NPC(pygame.sprite.Sprite):
                 if self.direction_y > 0:
                     #print("collision bottom side")
                     self.rect.bottom = wall.top
+                    self.position_y = wall.top
                 elif self.direction_y < 0:
                     #print("collision top side")
                     self.rect.top = wall.bottom
+                    self.position_y = wall.bottom
+                elif self.direction_y == 0:
+                    self.rect.bottom = wall.top
+                    self.position_y = wall.top
+                
 
 
 class Player(NPC):
@@ -376,7 +389,7 @@ class Player(NPC):
         self.rect.y = int(self.position_y)
         #print(self.rect.y)
         self.check_wallsY()
-        #print("X: ", str(self.direction_x), ", Y: ", str(self.direction_y))
+        #print("X: ", str(self.position_x), ", Y: ", str(self.position_y))
         #print("X: ", str(self.rect.x), ", Y: ", str(self.rect.y))
         
         self.check_edge()
@@ -524,7 +537,7 @@ class Enemy(NPC):
         # first, check if the target has been reached
         # this needs to be broader, likely candidate for the oscillation issue IT TOTALLY FUCKING WAS LET'S GO
         if ((self.new_pos[0]-2) <= self.rect.x <= (self.new_pos[0]+2)) and (self.new_pos[1]-2) <= self.rect.y <= (self.new_pos[1]+2):
-            print("I reached my target")
+            #print("I reached my target")
             # reset directions
             self.direction_x = 0
             self.direction_y = 0
@@ -532,7 +545,7 @@ class Enemy(NPC):
             self.time_delay()
         else:
             if self.player_spotted == False:
-                print("I'm wandering")
+                #print("I'm wandering")
                 self.wandering = True
             self.create_new_direction()
             self.move_enemy()
@@ -612,6 +625,7 @@ class Walker(Enemy):
     def move_enemy(self):
         # a general movement function, direction depends on whether the enemy is chasing or idle
         # skeleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
+        self.cur_wall_list = self.game.cur_wall_list
         """
         if self.mvmtimer == 1:
             self.position_x += self.direction_x * self.mvms * self.game.dt * 60
@@ -627,9 +641,10 @@ class Walker(Enemy):
         self.position_x += self.direction_x * self.mvms * self.game.dt * 60
         #print(int(self.game.dt * 60))
         self.rect.x = int(self.position_x)
-            #self.check_wallsX()
+        self.check_wallsX()
         self.position_y += self.direction_y * self.mvms * self.game.dt * 60
         self.rect.y = int(self.position_y)
+        self.check_wallsY()
         
         #print("Rect_X: ", self.rect.x, "Rect_Y: ", self.rect.y)
 
