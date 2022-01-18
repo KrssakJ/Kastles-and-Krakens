@@ -221,8 +221,8 @@ class TileMap():
             # object properties: id (integer); name,type (strings); x,y,width,height (floats); object.properties (dictionary)
             # object.properties is a dictionary that displays pairs of data
             if object.type == "wall":
-                # The 32px offset is due to the colliderect function - it's based off of the coordinates of the top left corner
-                temp_rect = pygame.Rect(object.x - 32, object.y - 32, object.width + 32, object.height + 32)
+                # The 32px offset is no longer necessary as the current rect is 48*48px (the previous rect was 16*16px)
+                temp_rect = pygame.Rect(object.x, object.y, object.width, object.height)
                 self.wall_list.append(temp_rect)
             if object.type == "enemy":
                 #print("I'm loading an enemy!")
@@ -264,8 +264,9 @@ class NPC(pygame.sprite.Sprite):
         #print(self.position_x, self.position_y)
 
         self.load_frames(sourcefile, frames_per_side)
-        self.rect = self.image.get_rect(topleft = (anch_x, anch_y))
-        #print(self.rect.x, self.rect.y)
+        self.rect = self.image.get_rect(topleft = (anch_x, anch_y), width=(self.size[0]*self.size_coef), height =(self.size[1]*self.size_coef))
+        print(self.rect.x, self.rect.y)
+        #print(self.rect.height)
 
     def load_frames(self, sourcefile, frames_per_side):
         self.spritesheet = Spritesheet(self.sourcefile)
@@ -285,6 +286,7 @@ class NPC(pygame.sprite.Sprite):
         self.cur_frame = 0
         self.image = self.frames_down[self.cur_frame]
         self.cur_sprlist = self.frames_down
+        self.size = self.image.get_size()
 
     def update(self):
         self.draw_NPC()
@@ -294,7 +296,6 @@ class NPC(pygame.sprite.Sprite):
         # most sprites are 48*48px
         self.set_state()
         self.animate()
-        self.size = self.image.get_size()
         self.bigger_sprite = pygame.transform.scale(self.image, (self.size[0]*self.size_coef, self.size[1]*self.size_coef))
         self.image = self.bigger_sprite
 
@@ -331,12 +332,15 @@ class NPC(pygame.sprite.Sprite):
         pass
 
     def check_wallsX(self):
+        #print(self.direction_x)
         for wall in self.cur_wall_list:
             if self.rect.colliderect(wall):
+                #print("i'm touching a wall")
                 if self.direction_x > 0:
                     #print("collision right side")
                     self.rect.right = wall.left
-                    self.position_x = wall.left
+                    self.position_x = wall.left-self.rect.width
+                    
                 elif self.direction_x < 0:
                     #print("collision left side")
                     self.rect.left = wall.right
@@ -344,7 +348,8 @@ class NPC(pygame.sprite.Sprite):
                 elif self.direction_x == 0:
                     # This acts as a workiaround for an issue with wall collision. As I do not have enough information about the way pygame's colliderect function works, this workaround may end up permanent. I don't care.
                     self.rect.right = wall.left
-                    self.position_x = wall.left
+                    self.position_x = wall.left-self.rect.width
+                    
 
     def check_wallsY(self):
         for wall in self.cur_wall_list:
@@ -352,14 +357,14 @@ class NPC(pygame.sprite.Sprite):
                 if self.direction_y > 0:
                     #print("collision bottom side")
                     self.rect.bottom = wall.top
-                    self.position_y = wall.top
+                    self.position_y = wall.top-self.rect.height
                 elif self.direction_y < 0:
                     #print("collision top side")
                     self.rect.top = wall.bottom
                     self.position_y = wall.bottom
                 elif self.direction_y == 0:
                     self.rect.bottom = wall.top
-                    self.position_y = wall.top
+                    self.position_y = wall.top-self.rect.height
                 
 
 
@@ -713,9 +718,7 @@ class Charger(Enemy):
 
     def chase_player(self):
         self.play_charging_animation()
-        now = pygame.time.get_ticks()
-        if now - self.prev_time > 3000:
-            self.charge()
+        self.charge()
 
     def play_charging_animation(self):
         pass
