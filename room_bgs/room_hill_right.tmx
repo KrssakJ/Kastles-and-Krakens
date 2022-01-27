@@ -87,7 +87,7 @@
     <property name="movement_speed" type="float" value="2"/>
    </properties>
   </object>
-  <object id="6" name="Worm" type="enemy" x="929" y="657" width="48" height="48">
+  <object id="6" name="Worm" type="enemy" x="929" y="657" width="64" height="64">
    <properties>
     <property name="enemy_sprite" value="fireworm"/>
     <property name="enemy_type" value="charger"/>

@@ -36,16 +36,15 @@
 </data>
  </layer>
  <objectgroup id="2" name="Enemies">
-  <object id="1" name="randomboi" type="enemy" x="1017.83" y="436.71" width="48" height="48">
+  <object id="1" name="randomworm" type="enemy" x="1017.83" y="436.71" width="64" height="64">
    <properties>
-    <property name="enemy_sprite" value="red_enemy"/>
-    <property name="enemy_type" value="walker"/>
-    <property name="movement_range" type="float" value="500"/>
+    <property name="enemy_sprite" value="fireworm"/>
+    <property name="enemy_type" value="charger"/>
+    <property name="hor_enemy" type="bool" value="true"/>
+    <property name="movement_range" type="float" value="150"/>
     <property name="movement_speed" type="float" value="2"/>
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="3" name="Walls">
-  <object id="2" name="Wall" type="wall" x="637.168" y="124.08" width="184.443" height="716.535"/>
- </objectgroup>
+ <objectgroup id="3" name="Walls"/>
 </map>
