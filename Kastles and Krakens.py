@@ -1,4 +1,3 @@
-from this import d
 import pygame, pytmx
 import time as t
 import math as m
@@ -447,7 +446,7 @@ class Enemy(NPC):
 
     def move(self):
         self.check_for_home()
-        self.check_for_player(1) # this is going to check if the player is within some arbitrary range
+        self.check_for_player() # this is going to check if the player is within some arbitrary range
         if self.player_spotted == True:
             #print("I see you!")
             self.reset_timers()
@@ -482,10 +481,10 @@ class Enemy(NPC):
             #print("i am not home")
             self.at_home = False
 
-    def check_for_player(self, range_mod):
+    def check_for_player(self):
         # calculates the distance between the enemy's rect and the player's rect
         self.distance = m.hypot(self.position_x - self.game.player.rect.x, self.position_y - self.game.player.rect.y)
-        if self.distance <= self.range*range_mod:
+        if self.distance <= self.range:
             self.player_spotted = True
             #print("I see you!")
         else:

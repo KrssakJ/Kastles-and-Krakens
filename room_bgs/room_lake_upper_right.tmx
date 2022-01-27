@@ -41,7 +41,7 @@
     <property name="enemy_sprite" value="fireworm"/>
     <property name="enemy_type" value="charger"/>
     <property name="hor_enemy" type="bool" value="true"/>
-    <property name="movement_range" type="float" value="150"/>
+    <property name="movement_range" type="float" value="300"/>
     <property name="movement_speed" type="float" value="2"/>
    </properties>
   </object>
