@@ -565,6 +565,7 @@ class Enemy(NPC):
                 #print("I'm wandering")
                 self.wandering = True
             self.create_new_direction()
+            self.approximate_direction()
             self.move_enemy()
 
     def create_new_direction(self):
@@ -615,12 +616,13 @@ class Walker(Enemy):
     def chase_player(self):
         # marks the player's position and moves towards it
         self.new_pos = [self.game.player.rect.x, self.game.player.rect.y]
-        self.approximate_direction()
+        #self.approximate_direction()
         self.move_to_new_pos()
 
     def move_enemy(self):
         # a general movement function, direction depends on whether the enemy is chasing or idle
         # skeleton - 0.75, eye - 1.00, goblin - 1.25/1.50?
+        ### I actually kind of like the variable movement speed in the Charger function, may end up adding it here as the game gets fleshed out
         self.cur_wall_list = self.game.cur_wall_list
         """
         if self.mvmtimer == 1:
@@ -696,19 +698,29 @@ class Charger(Enemy):
 
     def move_enemy(self):
         # a general movement function, direction depends on whether the enemy is chasing or idle
-        self.position_x += self.direction_x * self.mvms * self.game.dt * 60
+        if self.player_spotted == True:
+            mvms = self.mvms*2
+        else:
+            mvms = self.mvms
+        self.position_x += self.direction_x * mvms * self.game.dt * 60
         self.rect.x = int(self.position_x)
-        self.position_y += self.direction_y * self.mvms * self.game.dt * 60
+        self.position_y += self.direction_y * mvms * self.game.dt * 60
         self.rect.y = int(self.position_y)
+        #print("X: ", self.rect.x, self.position_x, ";Y: ", self.rect.y, self.position_y)
 
     def chase_player(self):
         #print("I see you!")
         if self.charge_delay == True:
+            self.check_for_charge()
             self.play_charging_animation()
         else:
             self.charge()
 
     def play_charging_animation(self):
+        pass
+
+
+    def check_for_charge(self):
         self.set_sprite()
         dt = self.game.dt
         self.charge_time += dt
@@ -716,10 +728,11 @@ class Charger(Enemy):
             self.charge_delay = False
             self.charge_time = 0
             self.new_pos = [self.game.player.rect.x, self.game.player.rect.y]
-            print("I'm done charging")
+            #print(self.new_pos)
+            #print("I'm done charging")
         else:
             self.charge_delay = True
-            print("I'm still charging!")
+            #print("I'm still charging!")
     
     def set_sprite(self):
         if self.game.player.position_x - self.position_x < 0:
@@ -729,7 +742,6 @@ class Charger(Enemy):
         self.base_sprite = self.cur_sprlist[3]
 
     def charge(self):
-        self.approximate_direction()
         self.move_to_new_pos()
 
     
