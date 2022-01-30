@@ -1,0 +1,255 @@
+{
+  "frames": {
+    "knight_idle1.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle10.png": {
+      "frame": {
+        "x": 0,
+        "y": 38,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle2.png": {
+      "frame": {
+        "x": 0,
+        "y": 76,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle3.png": {
+      "frame": {
+        "x": 0,
+        "y": 114,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle4.png": {
+      "frame": {
+        "x": 0,
+        "y": 152,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle5.png": {
+      "frame": {
+        "x": 0,
+        "y": 190,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle6.png": {
+      "frame": {
+        "x": 0,
+        "y": 228,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle7.png": {
+      "frame": {
+        "x": 0,
+        "y": 266,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle8.png": {
+      "frame": {
+        "x": 0,
+        "y": 304,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle9.png": {
+      "frame": {
+        "x": 0,
+        "y": 342,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.7",
+    "image": "knight_idle.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 21,
+      "h": 380
+    },
+    "scale": 1
+  }
+}

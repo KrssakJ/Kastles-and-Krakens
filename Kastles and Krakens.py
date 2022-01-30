@@ -13,6 +13,11 @@ class MainGame():
         ### TO DO:
         # Differentiating between sprites and battle_sprites using a trigger
         # Battle phase, at least something
+        self.load_variables()
+        self.load_rooms_betterer()
+        self.load_battle_sprites()
+
+    def load_variables(self):
         self.running = True
         self.game_WIDTH = 1280
         self.game_HEIGHT = 960
@@ -27,8 +32,9 @@ class MainGame():
         self.key_p = False
 
         self.player = Player(self, "player", 624, 600, 0, 4)
-        #self.player_alt = Player(self, "player", 624, 600, 0, 4)
-        self.based_phoenix = pygame.image.load("phoenix is based.png")
+        self.battle_bg_file = pygame.image.load("battle_background.png")
+        self.cur_battle_bg = pygame.Surface((1280,960))
+        self.cur_battle_bg.blit(self.battle_bg_file,(0,0))
         
         # player's current position in relation to the overworld, X and Y variables
         self.ow_posX = 2
@@ -38,9 +44,6 @@ class MainGame():
         
         self.roaming = True
         #self.game_state = self.states[0]
-
-        self.load_rooms_betterer()
-        self.load_battle_sprites()
 
     def get_events(self):
         for event in pygame.event.get():
@@ -56,7 +59,7 @@ class MainGame():
                 elif event.key == pygame.K_d:
                     self.key_d = True
                 elif event.key == pygame.K_p:
-                    self.roaming = False
+                    self.roaming = not self.roaming
                 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
@@ -67,8 +70,8 @@ class MainGame():
                     self.key_s = False
                 elif event.key == pygame.K_d:
                     self.key_d = False
-                elif event.key == pygame.K_p:
-                    self.roaming = True
+                #elif event.key == pygame.K_p:
+                    #self.roaming = True
     
     def change_pos(self):
         # Checks if the player has gone into a different room
@@ -89,14 +92,14 @@ class MainGame():
         self.world_data = []
         self.room_dir = os.path.join("room_bgs")
 
-        self.voidname = os.path.join(self.room_dir, "void.tmx")
-        self.void = Room(self, "void")
+        #self.voidname = os.path.join(self.room_dir, "void.tmx")
+        void = Room(self, "void")
 
         for f in self.mapdata:
             rowlist = []
             for r in f:
                 if r == "void":
-                    roomdata = self.void
+                    roomdata = void
                     rowlist.append(roomdata)
                 else:
                     roomdata = Room(self, r)
@@ -111,9 +114,10 @@ class MainGame():
             self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
 
     def load_battle_sprites(self):
-        pass
-        #self.game_battle_sprites = pygame.sprite.Group()
-        #self.game_battle_sprites.add(self.player_alt)
+        self.game_battle_sprites = pygame.sprite.Group()
+        self.player_alt = BattleNPC(self, "knight", 100, 650)
+        self.goblin = BattleNPC(self,"goblin", 900, 650)
+        self.game_battle_sprites.add(self.player_alt)
 
     def load_sprites(self):
         self.game_sprites = pygame.sprite.Group()
@@ -124,10 +128,9 @@ class MainGame():
         for enemy in enemy_list:
             if enemy[3] == "walker":
                 enemy = Walker(self, enemy[2], enemy[0], enemy[1], enemy[4], 4, enemy[5])
+
             elif enemy[3] == "charger":
                 enemy = Charger(self, enemy[2], enemy[0], enemy[1], enemy[4], 8, enemy[5])
-                #print(enemy_list)
-            #enemy = Enemy(self, enemy[0], enemy[1], enemy[2], enemy[3], 4, enemy[0])
             self.game_sprites.add(enemy)
         
     # Source: Christian Duenas - Pygame Framerate Independence
@@ -147,10 +150,14 @@ class MainGame():
             self.change_pos()
             if self.roaming == True:
                 self.main_screen.blit(self.cur_map_image, (0,0))
+                self.game_sprites.update()
+                self.game_sprites.draw(self.main_screen)
             else:
-                self.main_screen.blit(self.based_phoenix, (0,0))
-            self.game_sprites.update()
-            self.game_sprites.draw(self.main_screen)
+                self.main_screen.blit(self.cur_battle_bg, (0,0))
+                self.game_battle_sprites.update()
+                self.game_battle_sprites.draw(self.main_screen)
+            
+            
             #self.battle_sprites.draw(self.main_screen)
             #### IF overworld: x, elif battlephase: Y
 
@@ -188,6 +195,7 @@ class Spritesheet():
         height = sprite["h"]
         image = self.get_sprite(x, y, width, height)
         return image
+
 
 class Room():
     # Room object, stores info about walls/enemies/room properties (mainly for the purposes of readibility)
@@ -269,7 +277,7 @@ class NPC(pygame.sprite.Sprite):
         #print(self.rect.height)
 
     def load_frames(self, sourcefile, frames_per_side):
-        self.spritesheet = Spritesheet(self.sourcefile)
+        spritesheet = Spritesheet(self.sourcefile)
         self.frames_down = []
         self.frames_up = []
         self.frames_left = []
@@ -279,7 +287,7 @@ class NPC(pygame.sprite.Sprite):
         side_list_pos = 0
         for framelist in self.frames:
             for frame in range(frames_per_side):
-                parsed_frame = self.spritesheet.parse_sprite(sourcefile + self.sides[side_list_pos] + str(frame+1) + ".png")
+                parsed_frame = spritesheet.parse_sprite(sourcefile + self.sides[side_list_pos] + str(frame+1) + ".png")
                 framelist.append(parsed_frame)
             side_list_pos += 1
         self.frames.clear()
@@ -662,7 +670,9 @@ class Charger(Enemy):
         
     
     def load_frames(self, sourcefile, frames_per_side):
-        self.spritesheet = Spritesheet(self.sourcefile)
+        spritesheet = Spritesheet(self.sourcefile)
+        #spritelist = list(spritesheet.data["frames"])
+        #print(spritelist)
         self.frames_left = []
         self.frames_right = []
         self.frames = [self.frames_left, self.frames_right]
@@ -670,7 +680,7 @@ class Charger(Enemy):
         side_list_pos = 0
         for framelist in self.frames:
             for frame in range(frames_per_side):
-                parsed_frame = self.spritesheet.parse_sprite(sourcefile + self.sides[side_list_pos] + str(frame+1) + ".png")
+                parsed_frame = spritesheet.parse_sprite(sourcefile + self.sides[side_list_pos] + str(frame+1) + ".png")
                 framelist.append(parsed_frame)
             side_list_pos += 1
         self.frames.clear()
@@ -751,6 +761,96 @@ class Charger(Enemy):
     # Do I actually want to do this one? idk how it'd work with sprites
     # not entirely necessary, 2 enemy types is enough
     # Slime?
+
+class BattleNPC(pygame.sprite.Sprite):
+    def __init__(self, game, sourcefile, anch_x, anch_y):
+        # this is the basic battleNPC class
+        # this class should contain basic functions that load frames, play idle animations, contain basic attack functions (that then blossom out based on enemy types)
+        super().__init__()
+        self.game = game
+        self.sourcefile = sourcefile
+        self.anch_x = anch_x
+        self.anch_y = anch_y
+
+        self.state_idle = True
+        self.direction_x = 0
+        self.direction_y = 0
+        self.animation_time = 0
+
+        self.load_frames()
+        self.rect = self.image.get_rect(topleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
+
+    def load_frames(self):
+        spritesheet = Spritesheet(self.sourcefile+"_idle.png")
+        spritelist = list(spritesheet.data["frames"])
+        #print(spritelist)
+        self.frames_idle = []
+        self.frames_move_left = []
+        self.frames_move_right = []
+        self.frames_attackA = []
+        self.frames_attackB = []
+        self.frames_attackC = []
+        frames = [self.frames_idle, self.frames_move_left, self.frames_move_right, self.frames_attackA, self.frames_attackB, self.frames_attackC]
+        #frames = [frames_idle]
+        framesuffixes = ["_idle", "_move_left", "_move_right", "_attackA", "_attackB", "_attackC"]
+        suffvar = 0
+        for framelist in frames:
+            frame_prefix = self.sourcefile+framesuffixes[suffvar]
+            #print(frame_prefix)
+            max_var = int(0)
+            counting_var = 1
+            for i in spritelist:
+                if frame_prefix in i:
+                    inumtemp = i.replace(frame_prefix, "")
+                    inum = inumtemp.replace(".png", "")
+                    if int(inum) > int(max_var):
+                        max_var = inum
+            while len(framelist) != int(max_var):
+                for i in spritelist:
+                    if i == frame_prefix + str(counting_var) + ".png":
+                        parsed_frame = spritesheet.parse_sprite(i)
+                        framelist.append(parsed_frame)
+                        counting_var+=1
+            suffvar+=1
+        frames.clear()
+        self.cur_frame = 0
+        self.image = self.frames_idle[self.cur_frame]
+        self.cur_sprlist = self.frames_idle
+        self.size = self.image.get_size()
+
+    def update(self):
+        self.draw_BattleNPC()
+    
+    def draw_BattleNPC(self):
+        self.set_state()
+        self.animate()
+        self.bigger_sprite = pygame.transform.scale(self.base_sprite, (self.size[0]*6, self.size[1]*6))
+        self.image = self.bigger_sprite
+        
+    def set_state(self):
+        pass
+    
+    def animate(self):
+        if self.state_idle:
+            self.cur_sprlist = self.frames_idle
+        now = pygame.time.get_ticks()
+        if now - self.animation_time > 200:
+            self.animation_time = now
+            self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
+        self.base_sprite = self.cur_sprlist[self.cur_frame]
+
+
+
+#class BattlePlayer(BattleNPC):
+#class BattleEnemy(BattleNPC):
+#class BattleGoblin(Enemy):
+#class BattleSkeleton(Enemy):
+#class BattleFireworm(Enemy):
+
+
+
+
+
 
 
 
