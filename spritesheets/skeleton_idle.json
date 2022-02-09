@@ -1,0 +1,111 @@
+{
+  "frames": {
+    "skeleton_idle1.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 45,
+        "h": 51
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 60,
+        "y": 50,
+        "w": 45,
+        "h": 51
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 150
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "skeleton_idle2.png": {
+      "frame": {
+        "x": 0,
+        "y": 51,
+        "w": 45,
+        "h": 50
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 60,
+        "y": 51,
+        "w": 45,
+        "h": 50
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 150
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "skeleton_idle4.png": {
+      "frame": {
+        "x": 0,
+        "y": 101,
+        "w": 45,
+        "h": 50
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 60,
+        "y": 51,
+        "w": 45,
+        "h": 50
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 150
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "skeleton_idle3.png": {
+      "frame": {
+        "x": 0,
+        "y": 151,
+        "w": 45,
+        "h": 49
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 60,
+        "y": 52,
+        "w": 45,
+        "h": 49
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 150
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.7",
+    "image": "skeleton_idle.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 45,
+      "h": 200
+    },
+    "scale": 1
+  }
+}

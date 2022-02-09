@@ -14,8 +14,8 @@ class MainGame():
         # Differentiating between sprites and battle_sprites using a trigger
         # Battle phase, at least something
         self.load_variables()
-        self.load_rooms_betterer()
-        self.load_battle_sprites()
+        self.load_rooms()
+        #self.load_battle_sprites()
 
     def load_variables(self):
         self.running = True
@@ -35,7 +35,13 @@ class MainGame():
         self.battle_bg_file = pygame.image.load("battle_background.png")
         self.cur_battle_bg = pygame.Surface((1280,960))
         self.cur_battle_bg.blit(self.battle_bg_file,(0,0))
+        self.game_battle_sprites = pygame.sprite.Group()
         
+        # in-game variables: health, stamina, special points, etc.
+        self.player_health = 100
+        
+
+
         # player's current position in relation to the overworld, X and Y variables
         self.ow_posX = 2
         self.ow_posY = 1
@@ -59,7 +65,7 @@ class MainGame():
                 elif event.key == pygame.K_d:
                     self.key_d = True
                 elif event.key == pygame.K_p:
-                    self.roaming = not self.roaming
+                    self.instakill_enemy()
                 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
@@ -87,11 +93,11 @@ class MainGame():
         self.load_enemies(self.cur_room.enemy_list)
         self.prev_ow_pos = self.cur_ow_pos
 
-    def load_rooms_betterer(self):
+    def load_rooms(self):
         self.load_mapfile()
         self.world_data = []
         self.room_dir = os.path.join("room_bgs")
-
+        self.enemy_count = 0
         #self.voidname = os.path.join(self.room_dir, "void.tmx")
         void = Room(self, "void")
 
@@ -103,35 +109,58 @@ class MainGame():
                     rowlist.append(roomdata)
                 else:
                     roomdata = Room(self, r)
+                    self.enemy_count += len(roomdata.enemy_list)
                     #print(roomdata.enemy_list)
                     rowlist.append(roomdata)
             self.world_data.append(rowlist)
         #print(self.world_data)
+        print("Enemies left:", self.enemy_count)
         
     def load_mapfile(self):
         with open("maplist.csv") as r:
             loaded = csv.reader(r)  # reads the file, returns idk a number?
             self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
 
+    def trigger_battle_phase(self, enemy):
+        self.enemy = enemy
+        self.roaming = not self.roaming
+        self.load_battle_sprites()
+
+    def instakill_enemy(self):
+        if len(self.game_battle_sprites) == 0:
+            print("nope")
+            return
+        self.game_battle_sprites.remove(self.B_enemy)
+        self.enemy.alive = False
+
+
     def load_battle_sprites(self):
-        self.game_battle_sprites = pygame.sprite.Group()
-        self.player_alt = BattleNPC(self, "knight", 100, 650)
-        self.goblin = BattleNPC(self,"goblin", 900, 650)
-        self.game_battle_sprites.add(self.player_alt)
+        player_alt = BattlePlayer(self, 100, 650)
+        self.game_battle_sprites.add(player_alt)
+
+        if self.enemy.sourcefile == "red_enemy_sprites.png":
+            self.B_enemy = BattleGoblin(self, 1000, 650)
+        elif self.enemy.sourcefile == "blue_enemy_sprites.png":
+            self.B_enemy = BattleSkeleton(self, 1000, 650)
+        elif self.enemy.sourcefile == "fireworm_sprites.png":
+            self.B_enemy = BattleWorm(self,1000, 650)
+        else:
+            self.B_enemy = BattleGoblin(self, 1000, 650)
+        self.game_battle_sprites.add(self.B_enemy)
 
     def load_sprites(self):
         self.game_sprites = pygame.sprite.Group()
         self.game_sprites.add(self.player)
 
     def load_enemies(self, enemy_list):
-        # enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
+        # enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"], object.id]
         for enemy in enemy_list:
             if enemy[3] == "walker":
-                enemy = Walker(self, enemy[2], enemy[0], enemy[1], enemy[4], 4, enemy[5])
-
+                enemy = Walker(self, enemy[2], enemy[0], enemy[1], enemy[4], 4, enemy[5], enemy[6])
             elif enemy[3] == "charger":
-                enemy = Charger(self, enemy[2], enemy[0], enemy[1], enemy[4], 8, enemy[5])
+                enemy = Charger(self, enemy[2], enemy[0], enemy[1], enemy[4], 8, enemy[5], enemy[6])
             self.game_sprites.add(enemy)
+        #print(self.game_sprites)
         
     # Source: Christian Duenas - Pygame Framerate Independence
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
@@ -149,19 +178,35 @@ class MainGame():
             self.get_events()
             self.change_pos()
             if self.roaming == True:
+                self.victory_banner()
                 self.main_screen.blit(self.cur_map_image, (0,0))
                 self.game_sprites.update()
                 self.game_sprites.draw(self.main_screen)
             else:
+                self.check_for_battle()
                 self.main_screen.blit(self.cur_battle_bg, (0,0))
                 self.game_battle_sprites.update()
                 self.game_battle_sprites.draw(self.main_screen)
+            #print(self.roaming)
             
             
             #self.battle_sprites.draw(self.main_screen)
             #### IF overworld: x, elif battlephase: Y
 
             pygame.display.flip()
+
+    def check_for_battle(self):
+        if len(self.game_battle_sprites) == 1:
+            #print("aight we're done")
+            self.game_battle_sprites.empty()
+            self.roaming = True
+
+    def victory_banner(self):
+        if self.enemy_count != 0:
+            return
+        self.game_sprites.empty()
+        pygame.display.set_caption("Congratulations!")
+        
 
 class Spritesheet():
     def __init__(self, filename):
@@ -234,9 +279,7 @@ class TileMap():
                 self.wall_list.append(temp_rect)
             if object.type == "enemy":
                 #print("I'm loading an enemy!")
-                #print(str(object.properties["hor_enemy"]))
-                enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"]]
-                #print(object.properties["enemy_type"])
+                enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"], object.id]
                 self.enemy_list.append(enemy_data)
                 #print(self.enemy_list)
     
@@ -297,8 +340,12 @@ class NPC(pygame.sprite.Sprite):
         self.size = self.image.get_size()
 
     def update(self):
+        self.check_for_death()
         self.draw_NPC()
         self.move()
+
+    def check_for_death(self):
+        pass
 
     def draw_NPC(self):
         # most sprites are 48*48px
@@ -434,12 +481,13 @@ class Enemy(NPC):
     ## TO DO:
     # wander() function to move randomly around an anchor point
     # Multiple enemy types; different move_enemy() functions
-    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed, id):
         # Since the enemy's position is written in world_data, enemies don't need to track their position (at least in theory)
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
         self.range = int(range)
         self.anch_x = int(anch_x)
         self.anch_y = int(anch_y)
+        self.id = id
         #self.new_pos = [self.rect.x,self.rect.y]
         self.at_home = True
         self.player_spotted = False
@@ -449,8 +497,15 @@ class Enemy(NPC):
         self.charge_delay = True
         self.alive = True
 
-
-    
+    def check_for_death(self):
+        if self.alive == False:
+            self.kill()
+            for entity in self.game.cur_room.enemy_list:
+                if entity[6] == self.id:
+                    self.game.cur_room.enemy_list.remove(entity)
+                    self.game.enemy_count -= 1
+                    print("Enemies left:", self.game.enemy_count)
+            
 
     def move(self):
         self.check_for_home()
@@ -474,10 +529,10 @@ class Enemy(NPC):
     def approximate_direction(self):
         # stops the sprite from "vibrating" (a.k.a. oscillating)
         # this function needs to be expanded to include the return_home() function
-        if self.new_pos[0]-2 <= self.rect.x <= self.new_pos[0]+2:
+        if self.new_pos[0]-3 <= self.rect.x <= self.new_pos[0]+3:
             self.direction_x = 0
             #print("X is close enough")
-        if self.new_pos[1]-2 <= self.rect.y <= self.new_pos[1]+2:
+        if self.new_pos[1]-3 <= self.rect.y <= self.new_pos[1]+3:
             self.direction_y = 0
             #print("Y is close enough")
 
@@ -500,9 +555,11 @@ class Enemy(NPC):
             #print("where did you go?")
 
     def check_for_collision(self):
-        if self.rect.colliderect(self.game.player):
-            #print("I got you!")
-            pass
+        if self.rect.colliderect(self.game.player) and self.alive == True:
+            self.game.trigger_battle_phase(self)
+
+
+
     def return_home(self):
         self.new_pos = [self.anch_x, self.anch_y]
         self.move_to_new_pos()
@@ -614,8 +671,8 @@ class Walker(Enemy):
     # Skeleton: slow walker
     # Flying Eye: medium/fast walker
     # Goblin: fast walker
-    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
-        super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed, id):
+        super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed, id)
         #self.mvms = movement_speed
         self.mvms = 1
         # mvmtimer limits enemies to 30FPS in order to input custom movement speeds
@@ -661,8 +718,8 @@ class Charger(Enemy):
      #Complicated enemy; if the player is spotted, it will stay in place for 2 seconds, mark the player's location, and charge in a straight line
      #Mushroom/Fungus: slow charger
      #Worm: slow/medium charger, medium/large size
-    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed):
-        super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed)
+    def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed, id):
+        super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed, id)
         self.mvms = movement_speed
         self.size_coef = 4
         self.charge_time = 0.0
@@ -763,22 +820,23 @@ class Charger(Enemy):
     # Slime?
 
 class BattleNPC(pygame.sprite.Sprite):
-    def __init__(self, game, sourcefile, anch_x, anch_y):
+    def __init__(self, game, anch_x, anch_y):
         # this is the basic battleNPC class
         # this class should contain basic functions that load frames, play idle animations, contain basic attack functions (that then blossom out based on enemy types)
         super().__init__()
         self.game = game
-        self.sourcefile = sourcefile
+        self.sourcefile = "goblin"
         self.anch_x = anch_x
         self.anch_y = anch_y
+        # NOTE self.anch_y should be stable, it should symbolise the "ground" level for battleNPC objects
 
         self.state_idle = True
         self.direction_x = 0
         self.direction_y = 0
         self.animation_time = 0
+        self.size_coef = 6
 
-        self.load_frames()
-        self.rect = self.image.get_rect(topleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
+        
 
     def load_frames(self):
         spritesheet = Spritesheet(self.sourcefile+"_idle.png")
@@ -824,9 +882,13 @@ class BattleNPC(pygame.sprite.Sprite):
     def draw_BattleNPC(self):
         self.set_state()
         self.animate()
-        self.bigger_sprite = pygame.transform.scale(self.base_sprite, (self.size[0]*6, self.size[1]*6))
+        self.bigger_sprite = pygame.transform.scale(self.base_sprite, (self.size[0]*self.size_coef, self.size[1]*self.size_coef))
+        self.flip_sprite()
         self.image = self.bigger_sprite
         
+    def flip_sprite(self):
+        pass
+
     def set_state(self):
         pass
     
@@ -839,14 +901,46 @@ class BattleNPC(pygame.sprite.Sprite):
             self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
         self.base_sprite = self.cur_sprlist[self.cur_frame]
 
+class BattlePlayer(BattleNPC):
+    def __init__(self, game, anch_x, anch_y):
+        super().__init__(game, anch_x, anch_y)
+        self.sourcefile = "knight"
+        self.size_coef = 6
+        self.load_frames()
+        self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
 
 
-#class BattlePlayer(BattleNPC):
-#class BattleEnemy(BattleNPC):
-#class BattleGoblin(Enemy):
-#class BattleSkeleton(Enemy):
-#class BattleFireworm(Enemy):
+class BattleEnemy(BattleNPC):
+    def __init__(self, game, anch_x, anch_y):
+        super().__init__(game, anch_x, anch_y)
+    def flip_sprite(self):
+        self.bigger_sprite = pygame.transform.flip(self.bigger_sprite, True, False)
 
+class BattleGoblin(BattleEnemy):
+    def __init__(self, game, anch_x, anch_y):
+        super().__init__(game, anch_x, anch_y)
+        self.sourcefile = "goblin"
+        self.size_coef = 4
+        self.load_frames()
+        self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
+
+
+class BattleSkeleton(BattleEnemy):
+    def __init__(self, game, anch_x, anch_y):
+        super().__init__(game, anch_x, anch_y)
+        self.sourcefile = "skeleton"
+        self.size_coef = 6
+        self.load_frames()
+        self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
+
+
+class BattleWorm(BattleEnemy):
+    def __init__(self, game, anch_x, anch_y):
+        super().__init__(game, anch_x, anch_y)
+        self.sourcefile = "fireworm"
+        self.size_coef = 6
+        self.load_frames()
+        self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
 
 
 
