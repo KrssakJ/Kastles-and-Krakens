@@ -1,3 +1,4 @@
+from tkinter import Menu
 import pygame, pytmx
 import time as t
 import math as m
@@ -29,6 +30,7 @@ class MainGame():
         self.key_a = False
         self.key_s = False
         self.key_d = False
+        self.key_j = False
         self.key_p = False
 
         self.player = Player(self, "player", 624, 600, 0, 4)
@@ -58,12 +60,22 @@ class MainGame():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
                     self.key_w = True
+                    self.attack(0)
                 elif event.key == pygame.K_a:
                     self.key_a = True
+                    self.attack(1)
                 elif event.key == pygame.K_s:
                     self.key_s = True
+                    self.attack(2)
                 elif event.key == pygame.K_d:
                     self.key_d = True
+                    self.attack(3)
+                elif event.key == pygame.K_j:
+                    self.attack(4)
+                    self.do_menu_thing()
+                elif event.key == pygame.K_k:
+                    self.attack(5)
+                    
                 elif event.key == pygame.K_p:
                     self.instakill_enemy()
                 
@@ -76,6 +88,8 @@ class MainGame():
                     self.key_s = False
                 elif event.key == pygame.K_d:
                     self.key_d = False
+                #elif event.key == pygame.K_j:
+                    #self.key_j = False
                 #elif event.key == pygame.K_p:
                     #self.roaming = True
     
@@ -126,6 +140,28 @@ class MainGame():
         self.roaming = not self.roaming
         self.load_battle_sprites()
 
+    def do_menu_thing(self):
+        func = self.menu.menu_list[self.menu.selection]
+        func()
+
+    def attack(self, input_var):
+        if self.roaming:
+            return
+        # passed = the player is in the battle phase
+        if self.B_player.state_idle:
+            # the player is in the menu, picking an attack
+            if input_var == 1:
+                # player pressed A
+                self.menu.selection -= 1
+            elif input_var == 3:
+                # player pressed D
+                self.menu.selection += 1
+            else:
+                return
+
+
+
+
     def instakill_enemy(self):
         if len(self.game_battle_sprites) == 0:
             print("nope")
@@ -135,8 +171,11 @@ class MainGame():
 
 
     def load_battle_sprites(self):
-        player_alt = BattlePlayer(self, 100, 650)
-        self.game_battle_sprites.add(player_alt)
+        self.B_player = BattlePlayer(self, 100, 650)
+        self.game_battle_sprites.add(self.B_player)
+        self.menu = BattleMenu(self, self.player_health)
+        self.game_battle_sprites.add(self.menu)
+        
 
         if self.enemy.sourcefile == "red_enemy_sprites.png":
             self.B_enemy = BattleGoblin(self, 1000, 650)
@@ -196,7 +235,7 @@ class MainGame():
             pygame.display.flip()
 
     def check_for_battle(self):
-        if len(self.game_battle_sprites) == 1:
+        if len(self.game_battle_sprites) <= 2:
             #print("aight we're done")
             self.game_battle_sprites.empty()
             self.roaming = True
@@ -877,6 +916,7 @@ class BattleNPC(pygame.sprite.Sprite):
         self.size = self.image.get_size()
 
     def update(self):
+        self.set_state()
         self.draw_BattleNPC()
     
     def draw_BattleNPC(self):
@@ -908,6 +948,11 @@ class BattlePlayer(BattleNPC):
         self.size_coef = 6
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
+
+    def set_state(self):
+        self.state_idle = True
+        # if self.state_idle == False: check if the player is attacking or being attacked
+
 
 
 class BattleEnemy(BattleNPC):
@@ -942,8 +987,95 @@ class BattleWorm(BattleEnemy):
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
 
+class BattleMenu(pygame.sprite.Sprite):
+    def __init__(self, game, player_health):
+        super().__init__()
+        self.game = game
+        self.player_health = player_health
+        self.load_variables()
+        self.load_spritevariables()
+    
+    def load_variables(self):
+        self.selection = 0
+        self.menu_list = [self.attack, self.heavy_attack, self.items]
+        self.len_var = len(self.menu_list)
+        self.font = pygame.font.SysFont("arial", 32)
 
 
+    def load_spritevariables(self):
+        self.rect = pygame.Rect(50, 50, 1180, 100)
+        self.image = pygame.Surface((1180, 100))
+        self.create_buttons()
+        self.create_text()
+        
+        
+        #self.balls = pygame.image.load("heavy rock.png")
+
+    def create_buttons(self):
+        self.button_attack = pygame.Surface((250, 50))
+        self.button_heavyattack = pygame.Surface((250, 50))
+        self.button_items = pygame.Surface((250, 50))
+        self.button_list = [self.button_attack, self.button_heavyattack, self.button_items]
+        for i in self.button_list:
+            i.fill((100,100,100))
+
+    def create_text(self):
+        name_list = ["Attack", "Heavy Attack", "Items"]
+        self.text_list = []
+        text_var = 0
+        for i in name_list:
+            text = self.font.render(name_list[text_var], True, (0,0,0))
+            textwidth = text.get_size()
+            self.text_list.append(text)
+            self.text_list.append(textwidth)
+            text_var+=1
+
+    def update(self):
+        self.image.fill((30,55,150))
+        self.pick_action()
+        self.set_cursor_pos()
+        self.paint_buttons()
+        #self.image.blit(self.balls, (20,20))
+
+    def set_cursor_pos(self):
+        # do i actually need a cursor? with the border thing and all
+        pass
+
+    def paint_buttons(self):
+        var = 100
+        text_var = 0
+        for i in self.button_list:
+            if i == self.button_list[self.selection]:
+                i.fill((100,100,100))
+            else:
+                i.fill((200,200,200))
+            pygame.draw.rect(i, (200,200,200), (5,5,240,40))
+            self.image.blit(i, (var,25))
+            text = self.text_list[text_var]
+            t_size = self.text_list[text_var+1]
+            self.image.blit(text, (var+125-t_size[0]/2, 50-t_size[1]/2))
+            var += 365
+            text_var+=2
+        
+    def pick_action(self):
+        # this isn't going to work, it's better to just call the function through MainGame itself
+        if self.selection < 0:
+            self.selection = self.len_var - 1
+        elif self.selection == self.len_var:
+            self.selection = 0
+        
+
+    def attack(self):
+        # creates a random combo of inputs
+        self.combo = [0,1,2,3,4,5]
+        #self.game.B_player.state_idle = False
+        print("I attack!")
+
+    def heavy_attack(self):
+        print("I heavy attack!")
+
+    def items(self):
+        print("I picked items")
 
 
 
