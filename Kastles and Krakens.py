@@ -75,6 +75,13 @@ class MainGame():
                     self.do_menu_thing()
                 elif event.key == pygame.K_k:
                     self.attack(5)
+                elif event.key == pygame.K_b:
+                    self.B_player.state_idle = False
+                    self.B_player.state_lightattack = True
+                elif event.key == pygame.K_n:
+                    self.B_player.heavy_attack()
+                elif event.key == pygame.K_m:
+                    self.B_player.defend()
                     
                 elif event.key == pygame.K_p:
                     self.instakill_enemy()
@@ -156,6 +163,7 @@ class MainGame():
             elif input_var == 3:
                 # player pressed D
                 self.menu.selection += 1
+            
             else:
                 return
 
@@ -171,7 +179,7 @@ class MainGame():
 
 
     def load_battle_sprites(self):
-        self.B_player = BattlePlayer(self, 100, 650)
+        self.B_player = BattlePlayer(self, 100, 800)
         self.game_battle_sprites.add(self.B_player)
         self.menu = BattleMenu(self, self.player_health)
         self.game_battle_sprites.add(self.menu)
@@ -180,7 +188,7 @@ class MainGame():
         if self.enemy.sourcefile == "red_enemy_sprites.png":
             self.B_enemy = BattleGoblin(self, 1000, 650)
         elif self.enemy.sourcefile == "blue_enemy_sprites.png":
-            self.B_enemy = BattleSkeleton(self, 1000, 650)
+            self.B_enemy = BattleSkeleton(self, 1000, 800)
         elif self.enemy.sourcefile == "fireworm_sprites.png":
             self.B_enemy = BattleWorm(self,1000, 650)
         else:
@@ -875,7 +883,8 @@ class BattleNPC(pygame.sprite.Sprite):
         self.animation_time = 0
         self.size_coef = 6
 
-        
+        self.state_duck = True
+        self.state_roll = False      
 
     def load_frames(self):
         spritesheet = Spritesheet(self.sourcefile+"_idle.png")
@@ -887,9 +896,13 @@ class BattleNPC(pygame.sprite.Sprite):
         self.frames_attackA = []
         self.frames_attackB = []
         self.frames_attackC = []
-        frames = [self.frames_idle, self.frames_move_left, self.frames_move_right, self.frames_attackA, self.frames_attackB, self.frames_attackC]
+        self.frames_hit = []
+        self.frames_death = []
+        self.frames_duck = []
+        self.frames_roll = []
+        frames = [self.frames_idle, self.frames_move_left, self.frames_move_right, self.frames_attackA, self.frames_attackB, self.frames_attackC, self.frames_hit, self.frames_death, self.frames_duck, self.frames_roll]
         #frames = [frames_idle]
-        framesuffixes = ["_idle", "_move_left", "_move_right", "_attackA", "_attackB", "_attackC"]
+        framesuffixes = ["_idle", "_move_left", "_move_right", "_attackA", "_attackB", "_attackC", "_hit", "_death", "_duck", "_roll"]
         suffvar = 0
         for framelist in frames:
             frame_prefix = self.sourcefile+framesuffixes[suffvar]
@@ -906,9 +919,12 @@ class BattleNPC(pygame.sprite.Sprite):
                 for i in spritelist:
                     if i == frame_prefix + str(counting_var) + ".png":
                         parsed_frame = spritesheet.parse_sprite(i)
+                        
                         framelist.append(parsed_frame)
+                        
                         counting_var+=1
             suffvar+=1
+        #print(frames)
         frames.clear()
         self.cur_frame = 0
         self.image = self.frames_idle[self.cur_frame]
@@ -923,7 +939,9 @@ class BattleNPC(pygame.sprite.Sprite):
         self.set_state()
         self.animate()
         self.bigger_sprite = pygame.transform.scale(self.base_sprite, (self.size[0]*self.size_coef, self.size[1]*self.size_coef))
+        self.rect.y = self.anch_y - self.size[1]*self.size_coef # sets a stable ground level by changing the sprite's Y coordinate based on its height
         self.flip_sprite()
+        
         self.image = self.bigger_sprite
         
     def flip_sprite(self):
@@ -934,12 +952,15 @@ class BattleNPC(pygame.sprite.Sprite):
     
     def animate(self):
         if self.state_idle:
+            #print(self.sourcefile, "i think i'm idle!")
             self.cur_sprlist = self.frames_idle
         now = pygame.time.get_ticks()
         if now - self.animation_time > 200:
             self.animation_time = now
             self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
         self.base_sprite = self.cur_sprlist[self.cur_frame]
+        self.size = self.base_sprite.get_size()
+        
 
 class BattlePlayer(BattleNPC):
     def __init__(self, game, anch_x, anch_y):
@@ -949,9 +970,80 @@ class BattlePlayer(BattleNPC):
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
 
+        self.state_lightattack = False
+        self.lightattack_states = [self.frames_move_right, self.frames_attackA, self.frames_move_left]
+        self.lightattack_cur = 0
+
     def set_state(self):
-        self.state_idle = True
+        if self.state_idle:
+            self.cur_sprlist = self.frames_idle
+        else:
+            if self.state_lightattack:
+                self.light_attack()
+                pass
+        # self.state_idle = True
         # if self.state_idle == False: check if the player is attacking or being attacked
+
+    def light_attack(self):
+        #this is the light attack animation
+        #player moves to the enemy, swipes and moves back
+        print("I used my light attack!")
+        self.cur_sprlist = self.lightattack_states[self.lightattack_cur]
+        if self.lightattack_cur == 0:
+            if self.rect.x <= 500:
+                self.rect.x += 5
+            else:
+                self.lightattack_cur+=1
+        elif self.lightattack_cur == 1:
+            if self.cur_frame == 3:
+                self.lightattack_cur+=1
+        elif self.lightattack_cur == 2:
+            if self.rect.x >= 100:
+                self.rect.x -=5
+            else:
+                self.state_lightattack = False
+                self.state_idle = True
+                self.lightattack_cur = 0
+            
+        
+        
+        
+        
+        self.state_idle = False
+        self.state_lightattack = True
+        self.cur_frame = 0
+        self.cur_sprlist = self.frames_move_right
+
+        
+
+        self.cur_sprlist = self.frames_attackA
+        self.image = self.frames_idle[self.cur_frame]
+        
+
+    def heavy_attack(self):
+        #this is the heavy attack animation
+        #player rolls to the enemy, does a double-swipe, and roll back
+        print("I used my heavy attack!")
+        self.state_idle = False
+        self.cur_frame = 0
+        self.cur_sprlist = self.frames_attackC
+        self.image = self.frames_idle[self.cur_frame]
+        
+
+    def defend(self):
+        #this is the defend animation
+        #2 variations based on enemy type: either a simple ducking motion, or a parry+riposte
+        print("I'm defending!")
+        self.state_idle = False
+        self.cur_frame = 0
+        if self.state_duck:
+            self.cur_sprlist = self.frames_duck
+        else:
+            self.cur_sprlist = self.frames_roll
+        self.image = self.frames_idle[self.cur_frame]
+        
+
+
 
 
 
