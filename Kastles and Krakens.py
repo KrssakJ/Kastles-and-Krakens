@@ -921,7 +921,6 @@ class BattleNPC(pygame.sprite.Sprite):
         self.frames_duck = []
         self.frames_roll = []
         frames = [self.frames_idle, self.frames_move_left, self.frames_move_right, self.frames_attackA, self.frames_attackB, self.frames_attackC, self.frames_hit, self.frames_death, self.frames_duck, self.frames_roll]
-        #frames = [frames_idle]
         framesuffixes = ["_idle", "_move_left", "_move_right", "_attackA", "_attackB", "_attackC", "_hit", "_death", "_duck", "_roll"]
         suffvar = 0
         for framelist in frames:
@@ -1033,6 +1032,7 @@ class BattlePlayer(BattleNPC):
                 self.state_idle = True
                 self.lightattack_cur = 0
                 self.cur_frame = 0
+                self.game.menu.active_attack = False
                 self.game.tally(0,-50)
         self.image = self.cur_sprlist[self.cur_frame]
         
@@ -1077,6 +1077,7 @@ class BattlePlayer(BattleNPC):
                 self.state_idle = True
                 self.heavyattack_cur = 0
                 self.cur_frame = 0
+                self.game.menu.active_attack = False
                 self.game.tally(0,-100)
         self.image = self.cur_sprlist[self.cur_frame]
         
@@ -1199,8 +1200,11 @@ class BattleMenu(pygame.sprite.Sprite):
         self.key_sprites = []
         for i in qt_list:
             key = self.keys_default[i]
-            self.key_sprites.append(key)
-        print(self.key_sprites)
+            bigger_key = pygame.transform.scale(key, (64,64))
+            self.key_sprites.append(bigger_key)
+        self.key_num = len(self.key_sprites)
+        self.gap = 1080/(self.key_num-1) # gap is a float, will need to turn it into an integer before working with it
+        
 
     def create_text(self):
         name_list = ["Attack", "Heavy Attack", "Items"]
@@ -1216,27 +1220,33 @@ class BattleMenu(pygame.sprite.Sprite):
         self.pick_action()
         self.set_cursor_pos()
         self.paint_buttons()
-        #self.image.blit(self.balls, (20,20))
 
     def set_cursor_pos(self):
         # do i actually need a cursor? with the border thing and all
         pass
 
     def paint_buttons(self):
-        var = 100
-        text_var = 0
-        for i in self.button_list:
-            if i == self.button_list[self.selection]:
-                i.fill((100,100,100))
-            else:
-                i.fill((200,200,200))
-            pygame.draw.rect(i, (200,200,200), (5,5,240,40))
-            self.image.blit(i, (var,25))
-            text = self.text_list[text_var]
-            t_size = self.text_list[text_var+1]
-            self.image.blit(text, (var+125-t_size[0]/2, 50-t_size[1]/2))
-            var += 365
-            text_var+=2
+        if self.active_attack:
+            var = 18
+            for key in self.key_sprites:
+                self.image.blit(key, (var,18))
+                var += int(self.gap)
+                
+        else:
+            var = 100
+            text_var = 0
+            for i in self.button_list:
+                if i == self.button_list[self.selection]:
+                    i.fill((100,100,100))
+                else:
+                    i.fill((200,200,200))
+                pygame.draw.rect(i, (200,200,200), (5,5,240,40))
+                self.image.blit(i, (var,25))
+                text = self.text_list[text_var]
+                t_size = self.text_list[text_var+1]
+                self.image.blit(text, (var+125-t_size[0]/2, 50-t_size[1]/2))
+                var += 365
+                text_var+=2
         
     def pick_action(self):
         # this isn't going to work, it's better to just call the function through MainGame itself
@@ -1260,6 +1270,12 @@ class BattleMenu(pygame.sprite.Sprite):
         print("I attack!")
 
     def heavy_attack(self):
+        self.active_attack = True
+        self.combo = []
+        self.qt_event = [3,3,2,2,3,4,5,4,1] # ddssdjkja
+        self.create_qtbuttons(self.qt_event)
+
+
         self.game.B_player.state_idle = False
         self.game.B_player.state_heavyattack = True
         self.game.B_player.cur_frame = 0
