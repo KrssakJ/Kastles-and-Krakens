@@ -78,6 +78,7 @@ class MainGame():
                 elif event.key == pygame.K_b:
                     self.B_player.state_idle = False
                     self.B_player.state_lightattack = True
+                    self.B_player.cur_frame = 0
                 elif event.key == pygame.K_n:
                     self.B_player.heavy_attack()
                 elif event.key == pygame.K_m:
@@ -987,37 +988,29 @@ class BattlePlayer(BattleNPC):
     def light_attack(self):
         #this is the light attack animation
         #player moves to the enemy, swipes and moves back
-        print("I used my light attack!")
+        #print("I used my light attack!")
         self.cur_sprlist = self.lightattack_states[self.lightattack_cur]
         if self.lightattack_cur == 0:
-            if self.rect.x <= 500:
-                self.rect.x += 5
+            if self.rect.x <= 750:
+                self.rect.x += 4
             else:
+                self.rect.x = 750
                 self.lightattack_cur+=1
+                self.cur_frame = 0
         elif self.lightattack_cur == 1:
             if self.cur_frame == 3:
                 self.lightattack_cur+=1
+                self.cur_frame = 0
         elif self.lightattack_cur == 2:
             if self.rect.x >= 100:
-                self.rect.x -=5
+                self.rect.x -=4
             else:
+                self.rect.x = 100
                 self.state_lightattack = False
                 self.state_idle = True
                 self.lightattack_cur = 0
-            
-        
-        
-        
-        
-        self.state_idle = False
-        self.state_lightattack = True
-        self.cur_frame = 0
-        self.cur_sprlist = self.frames_move_right
-
-        
-
-        self.cur_sprlist = self.frames_attackA
-        self.image = self.frames_idle[self.cur_frame]
+                self.cur_frame = 0
+        self.image = self.cur_sprlist[self.cur_frame]
         
 
     def heavy_attack(self):
