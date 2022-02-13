@@ -151,8 +151,9 @@ class MainGame():
         self.load_battle_sprites()
 
     def do_menu_thing(self):
-        func = self.menu.menu_list[self.menu.selection]
-        func()
+        if self.B_player.state_idle:
+            func = self.menu.menu_list[self.menu.selection]
+            func()
 
     def attack(self, input_var):
         if self.roaming:
@@ -166,9 +167,14 @@ class MainGame():
             elif input_var == 3:
                 # player pressed D
                 self.menu.selection += 1
-            
+        elif self.B_player.state_lightattack:
+            self.menu.combo.append(input_var)
+            num_pos = len(self.menu.combo)-1
+            print(num_pos)
+            if input_var != self.menu.qt_event[num_pos]:
+                print("combo failed!")
             else:
-                return
+                print("nice")
 
     def tally(self, delta_player, delta_enemy):
         self.player_health += delta_player
@@ -933,9 +939,7 @@ class BattleNPC(pygame.sprite.Sprite):
                 for i in spritelist:
                     if i == frame_prefix + str(counting_var) + ".png":
                         parsed_frame = spritesheet.parse_sprite(i)
-                        
                         framelist.append(parsed_frame)
-                        
                         counting_var+=1
             suffvar+=1
         #print(frames)
@@ -1035,8 +1039,7 @@ class BattlePlayer(BattleNPC):
 
     def heavy_attack(self):
         #this is the heavy attack animation
-        #player rolls to the enemy, does a double-swipe, and roll back
-        print("I used my heavy attack!")
+        #player rolls to the enemy, does a double-swipe, and runs back
         self.cur_sprlist = self.heavyattack_states[self.heavyattack_cur]
         if self.heavyattack_cur == 0:
             if self.rect.x <= 200:
@@ -1098,6 +1101,7 @@ class BattlePlayer(BattleNPC):
 class BattleEnemy(BattleNPC):
     def __init__(self, game, anch_x, anch_y):
         super().__init__(game, anch_x, anch_y)
+        self.game.enemy_health = 150
     def flip_sprite(self):
         self.bigger_sprite = pygame.transform.flip(self.bigger_sprite, True, False)
 
@@ -1106,6 +1110,7 @@ class BattleGoblin(BattleEnemy):
         super().__init__(game, anch_x, anch_y)
         self.sourcefile = "goblin"
         self.size_coef = 4
+        self.game.enemy_health = 125
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
 
@@ -1115,7 +1120,7 @@ class BattleSkeleton(BattleEnemy):
         super().__init__(game, anch_x, anch_y)
         self.sourcefile = "skeleton"
         self.size_coef = 6
-        self.game.enemy_health = 150
+        self.game.enemy_health = 175
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
 
@@ -1125,6 +1130,7 @@ class BattleWorm(BattleEnemy):
         super().__init__(game, anch_x, anch_y)
         self.sourcefile = "fireworm"
         self.size_coef = 6
+        self.game.enemy_health = 250
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
 
@@ -1141,6 +1147,7 @@ class BattleMenu(pygame.sprite.Sprite):
         self.menu_list = [self.attack, self.heavy_attack, self.items]
         self.len_var = len(self.menu_list)
         self.font = pygame.font.SysFont("arial", 32)
+        self.active_attack = False
 
 
     def load_spritevariables(self):
@@ -1148,7 +1155,7 @@ class BattleMenu(pygame.sprite.Sprite):
         self.image = pygame.Surface((1180, 100))
         self.create_buttons()
         self.create_text()
-        
+        self.load_qtbuttons()
         
         #self.balls = pygame.image.load("heavy rock.png")
 
@@ -1159,6 +1166,41 @@ class BattleMenu(pygame.sprite.Sprite):
         self.button_list = [self.button_attack, self.button_heavyattack, self.button_items]
         for i in self.button_list:
             i.fill((100,100,100))
+
+    def load_qtbuttons(self):
+        spritesheet = Spritesheet("key_assets.png")
+        spritelist = list(spritesheet.data["frames"])
+        self.keys_correct = []
+        self.keys_default = []
+        self.keys_failed = []
+        frames = [self.keys_correct, self.keys_default, self.keys_failed]
+        framesuffixes = ["_correct", "_default", "_failed"]
+        suffvar = 0
+        for framelist in frames:
+            frame_prefix = "key"+framesuffixes[suffvar]
+            max_var = int(0)
+            counting_var = int(0)
+            for i in spritelist:
+                if frame_prefix in i:
+                    inumtemp = i.replace(frame_prefix, "")
+                    inum = inumtemp.replace(".png", "")
+                    if int(inum) > int(max_var):
+                        max_var = inum
+            while len(framelist) != int(max_var)+1:
+                for i in spritelist:
+                    if i == frame_prefix + str(counting_var) + ".png":
+                        parsed_frame = spritesheet.parse_sprite(i)
+                        framelist.append(parsed_frame)
+                        counting_var+=1
+            suffvar+=1
+        frames.clear()
+
+    def create_qtbuttons(self, qt_list):
+        self.key_sprites = []
+        for i in qt_list:
+            key = self.keys_default[i]
+            self.key_sprites.append(key)
+        print(self.key_sprites)
 
     def create_text(self):
         name_list = ["Attack", "Heavy Attack", "Items"]
@@ -1206,7 +1248,12 @@ class BattleMenu(pygame.sprite.Sprite):
 
     def attack(self):
         # creates a random combo of inputs
-        self.combo = [0,1,2,3,4,5]
+        self.active_attack = True
+        self.combo = []
+        self.qt_event = [3,0,3,4,5,1] # D W D J K A
+        self.create_qtbuttons(self.qt_event)
+        
+        
         self.game.B_player.state_idle = False
         self.game.B_player.state_lightattack = True
         self.game.B_player.cur_frame = 0
