@@ -240,20 +240,20 @@
         "y": 0.5
       }
     },
-    "knight_attackC6.png": {
+    "knight_roll6.png": {
       "frame": {
         "x": 382,
         "y": 35,
-        "w": 42,
-        "h": 37
+        "w": 43,
+        "h": 23
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 26,
-        "y": 43,
-        "w": 42,
-        "h": 37
+        "x": 42,
+        "y": 50,
+        "w": 43,
+        "h": 23
       },
       "sourceSize": {
         "w": 120,
@@ -266,7 +266,7 @@
     },
     "knight_move_left6.png": {
       "frame": {
-        "x": 424,
+        "x": 425,
         "y": 35,
         "w": 29,
         "h": 36
@@ -288,10 +288,130 @@
         "y": 0.5
       }
     },
-    "knight_attackA1.png": {
+    "knight_attackC6.png": {
+      "frame": {
+        "x": 382,
+        "y": 58,
+        "w": 42,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 26,
+        "y": 43,
+        "w": 42,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_roll4.png": {
       "frame": {
         "x": 143,
         "y": 36,
+        "w": 42,
+        "h": 19
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 49,
+        "w": 42,
+        "h": 19
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_roll5.png": {
+      "frame": {
+        "x": 66,
+        "y": 43,
+        "w": 41,
+        "h": 19
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 43,
+        "y": 49,
+        "w": 41,
+        "h": 19
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_roll2.png": {
+      "frame": {
+        "x": 107,
+        "y": 43,
+        "w": 36,
+        "h": 29
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 44,
+        "y": 46,
+        "w": 36,
+        "h": 29
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_roll3.png": {
+      "frame": {
+        "x": 66,
+        "y": 62,
+        "w": 40,
+        "h": 24
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 44,
+        "y": 48,
+        "w": 40,
+        "h": 24
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_attackA1.png": {
+      "frame": {
+        "x": 0,
+        "y": 84,
         "w": 39,
         "h": 37
       },
@@ -312,10 +432,34 @@
         "y": 0.5
       }
     },
+    "knight_move_left2.png": {
+      "frame": {
+        "x": 39,
+        "y": 84,
+        "w": 26,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 10,
+        "y": 43,
+        "w": 26,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "knight_attackC1.png": {
       "frame": {
-        "x": 66,
-        "y": 71,
+        "x": 185,
+        "y": 36,
         "w": 39,
         "h": 37
       },
@@ -338,8 +482,8 @@
     },
     "knight_attackC5.png": {
       "frame": {
-        "x": 105,
-        "y": 43,
+        "x": 143,
+        "y": 71,
         "w": 38,
         "h": 37
       },
@@ -362,8 +506,8 @@
     },
     "knight_move_right6.png": {
       "frame": {
-        "x": 0,
-        "y": 84,
+        "x": 106,
+        "y": 72,
         "w": 29,
         "h": 36
       },
@@ -386,8 +530,8 @@
     },
     "knight_move_left1.png": {
       "frame": {
-        "x": 29,
-        "y": 84,
+        "x": 65,
+        "y": 86,
         "w": 28,
         "h": 37
       },
@@ -411,7 +555,7 @@
     "knight_move_right1.png": {
       "frame": {
         "x": 0,
-        "y": 120,
+        "y": 121,
         "w": 28,
         "h": 37
       },
@@ -432,23 +576,23 @@
         "y": 0.5
       }
     },
-    "knight_move_left2.png": {
+    "knight_roll7.png": {
       "frame": {
-        "x": 182,
-        "y": 36,
-        "w": 26,
-        "h": 37
+        "x": 28,
+        "y": 121,
+        "w": 28,
+        "h": 31
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 10,
-        "y": 43,
-        "w": 26,
-        "h": 37
+        "x": 47,
+        "y": 49,
+        "w": 28,
+        "h": 31
       },
       "sourceSize": {
-        "w": 40,
+        "w": 120,
         "h": 80
       },
       "pivot": {
@@ -458,7 +602,7 @@
     },
     "knight_move_right2.png": {
       "frame": {
-        "x": 208,
+        "x": 224,
         "y": 36,
         "w": 26,
         "h": 37
@@ -482,7 +626,7 @@
     },
     "knight_move_left10.png": {
       "frame": {
-        "x": 234,
+        "x": 250,
         "y": 36,
         "w": 26,
         "h": 36
@@ -506,7 +650,7 @@
     },
     "knight_move_right10.png": {
       "frame": {
-        "x": 260,
+        "x": 276,
         "y": 36,
         "w": 26,
         "h": 36
@@ -528,10 +672,34 @@
         "y": 0.5
       }
     },
+    "knight_roll12.png": {
+      "frame": {
+        "x": 302,
+        "y": 36,
+        "w": 26,
+        "h": 33
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 46,
+        "y": 47,
+        "w": 26,
+        "h": 33
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "knight_move_left7.png": {
       "frame": {
-        "x": 286,
-        "y": 36,
+        "x": 302,
+        "y": 69,
         "w": 25,
         "h": 37
       },
@@ -554,8 +722,8 @@
     },
     "knight_move_right7.png": {
       "frame": {
-        "x": 311,
-        "y": 36,
+        "x": 250,
+        "y": 72,
         "w": 25,
         "h": 37
       },
@@ -578,8 +746,8 @@
     },
     "knight_move_left5.png": {
       "frame": {
-        "x": 336,
-        "y": 71,
+        "x": 275,
+        "y": 72,
         "w": 25,
         "h": 36
       },
@@ -600,34 +768,10 @@
         "y": 0.5
       }
     },
-    "knight_idle1.png": {
-      "frame": {
-        "x": 361,
-        "y": 71,
-        "w": 21,
-        "h": 38
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 4,
-        "y": 42,
-        "w": 21,
-        "h": 38
-      },
-      "sourceSize": {
-        "w": 40,
-        "h": 80
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
     "knight_move_right5.png": {
       "frame": {
-        "x": 336,
-        "y": 107,
+        "x": 327,
+        "y": 71,
         "w": 25,
         "h": 36
       },
@@ -648,10 +792,154 @@
         "y": 0.5
       }
     },
+    "knight_roll9.png": {
+      "frame": {
+        "x": 300,
+        "y": 106,
+        "w": 25,
+        "h": 21
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 55,
+        "y": 59,
+        "w": 25,
+        "h": 21
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_roll10.png": {
+      "frame": {
+        "x": 275,
+        "y": 108,
+        "w": 25,
+        "h": 20
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 60,
+        "w": 25,
+        "h": 20
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_roll1.png": {
+      "frame": {
+        "x": 352,
+        "y": 71,
+        "w": 24,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 50,
+        "y": 41,
+        "w": 24,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_roll8.png": {
+      "frame": {
+        "x": 325,
+        "y": 107,
+        "w": 23,
+        "h": 26
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 53,
+        "y": 54,
+        "w": 23,
+        "h": 26
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_roll11.png": {
+      "frame": {
+        "x": 300,
+        "y": 127,
+        "w": 22,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 49,
+        "y": 52,
+        "w": 22,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 120,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_idle1.png": {
+      "frame": {
+        "x": 181,
+        "y": 73,
+        "w": 21,
+        "h": 38
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 42,
+        "w": 21,
+        "h": 38
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "knight_idle10.png": {
       "frame": {
-        "x": 336,
-        "y": 143,
+        "x": 202,
+        "y": 73,
         "w": 21,
         "h": 38
       },
@@ -674,8 +962,8 @@
     },
     "knight_idle2.png": {
       "frame": {
-        "x": 234,
-        "y": 72,
+        "x": 223,
+        "y": 73,
         "w": 21,
         "h": 38
       },
@@ -698,8 +986,8 @@
     },
     "knight_idle3.png": {
       "frame": {
-        "x": 255,
-        "y": 72,
+        "x": 244,
+        "y": 109,
         "w": 21,
         "h": 38
       },
@@ -722,8 +1010,8 @@
     },
     "knight_idle4.png": {
       "frame": {
-        "x": 276,
-        "y": 73,
+        "x": 244,
+        "y": 147,
         "w": 21,
         "h": 38
       },
@@ -746,8 +1034,8 @@
     },
     "knight_idle5.png": {
       "frame": {
-        "x": 297,
-        "y": 73,
+        "x": 265,
+        "y": 128,
         "w": 21,
         "h": 38
       },
@@ -768,58 +1056,10 @@
         "y": 0.5
       }
     },
-    "knight_move_left3.png": {
-      "frame": {
-        "x": 318,
-        "y": 73,
-        "w": 18,
-        "h": 37
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 13,
-        "y": 43,
-        "w": 18,
-        "h": 37
-      },
-      "sourceSize": {
-        "w": 40,
-        "h": 80
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "knight_move_left9.png": {
-      "frame": {
-        "x": 318,
-        "y": 110,
-        "w": 18,
-        "h": 37
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 16,
-        "y": 42,
-        "w": 18,
-        "h": 37
-      },
-      "sourceSize": {
-        "w": 40,
-        "h": 80
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
     "knight_idle6.png": {
       "frame": {
-        "x": 143,
-        "y": 73,
+        "x": 265,
+        "y": 166,
         "w": 21,
         "h": 38
       },
@@ -842,8 +1082,8 @@
     },
     "knight_idle7.png": {
       "frame": {
-        "x": 105,
-        "y": 80,
+        "x": 93,
+        "y": 108,
         "w": 21,
         "h": 38
       },
@@ -864,34 +1104,10 @@
         "y": 0.5
       }
     },
-    "knight_move_left8.png": {
-      "frame": {
-        "x": 126,
-        "y": 80,
-        "w": 17,
-        "h": 37
-      },
-      "rotated": false,
-      "trimmed": true,
-      "spriteSourceSize": {
-        "x": 16,
-        "y": 43,
-        "w": 17,
-        "h": 37
-      },
-      "sourceSize": {
-        "w": 40,
-        "h": 80
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
     "knight_idle8.png": {
       "frame": {
-        "x": 57,
-        "y": 108,
+        "x": 56,
+        "y": 123,
         "w": 21,
         "h": 38
       },
@@ -914,8 +1130,8 @@
     },
     "knight_idle9.png": {
       "frame": {
-        "x": 78,
-        "y": 108,
+        "x": 28,
+        "y": 152,
         "w": 21,
         "h": 38
       },
@@ -938,8 +1154,8 @@
     },
     "knight_move_left4.png": {
       "frame": {
-        "x": 28,
-        "y": 121,
+        "x": 0,
+        "y": 158,
         "w": 19,
         "h": 37
       },
@@ -962,8 +1178,8 @@
     },
     "knight_move_right4.png": {
       "frame": {
-        "x": 0,
-        "y": 157,
+        "x": 114,
+        "y": 108,
         "w": 19,
         "h": 37
       },
@@ -984,10 +1200,58 @@
         "y": 0.5
       }
     },
+    "knight_move_left3.png": {
+      "frame": {
+        "x": 133,
+        "y": 108,
+        "w": 18,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 13,
+        "y": 43,
+        "w": 18,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "knight_move_left9.png": {
+      "frame": {
+        "x": 151,
+        "y": 108,
+        "w": 18,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 16,
+        "y": 42,
+        "w": 18,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "knight_move_right3.png": {
       "frame": {
-        "x": 164,
-        "y": 73,
+        "x": 151,
+        "y": 145,
         "w": 18,
         "h": 37
       },
@@ -1010,8 +1274,8 @@
     },
     "knight_move_right9.png": {
       "frame": {
-        "x": 182,
-        "y": 73,
+        "x": 114,
+        "y": 145,
         "w": 18,
         "h": 37
       },
@@ -1032,10 +1296,34 @@
         "y": 0.5
       }
     },
+    "knight_move_left8.png": {
+      "frame": {
+        "x": 132,
+        "y": 146,
+        "w": 17,
+        "h": 37
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 16,
+        "y": 43,
+        "w": 17,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 80
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "knight_move_right8.png": {
       "frame": {
-        "x": 200,
-        "y": 73,
+        "x": 77,
+        "y": 146,
         "w": 17,
         "h": 37
       },
@@ -1064,7 +1352,7 @@
     "format": "RGBA8888",
     "size": {
       "w": 501,
-      "h": 194
+      "h": 204
     },
     "scale": 1
   }

@@ -41,8 +41,8 @@ class MainGame():
         
         # in-game variables: health, stamina, special points, etc.
         self.player_health = 100
+        self.enemy_health = 100
         
-
 
         # player's current position in relation to the overworld, X and Y variables
         self.ow_posX = 2
@@ -80,7 +80,9 @@ class MainGame():
                     self.B_player.state_lightattack = True
                     self.B_player.cur_frame = 0
                 elif event.key == pygame.K_n:
-                    self.B_player.heavy_attack()
+                    self.B_player.state_idle = False
+                    self.B_player.state_heavyattack = True
+                    self.B_player.cur_frame = 0
                 elif event.key == pygame.K_m:
                     self.B_player.defend()
                     
@@ -168,7 +170,17 @@ class MainGame():
             else:
                 return
 
-
+    def tally(self, delta_player, delta_enemy):
+        self.player_health += delta_player
+        self.enemy_health += delta_enemy
+        print(self.enemy_health)
+        # then it blits a small number in front of each character
+        if self.player_health <= 0:
+            print("you died")
+        elif self.enemy_health <= 0:
+            print("you won!")
+            self.game_battle_sprites.remove(self.B_enemy)
+            self.enemy.alive = False
 
 
     def instakill_enemy(self):
@@ -883,6 +895,7 @@ class BattleNPC(pygame.sprite.Sprite):
         self.direction_y = 0
         self.animation_time = 0
         self.size_coef = 6
+        self.frame_delay = 200
 
         self.state_duck = True
         self.state_roll = False      
@@ -956,7 +969,7 @@ class BattleNPC(pygame.sprite.Sprite):
             #print(self.sourcefile, "i think i'm idle!")
             self.cur_sprlist = self.frames_idle
         now = pygame.time.get_ticks()
-        if now - self.animation_time > 200:
+        if now - self.animation_time > self.frame_delay:
             self.animation_time = now
             self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
         self.base_sprite = self.cur_sprlist[self.cur_frame]
@@ -975,13 +988,19 @@ class BattlePlayer(BattleNPC):
         self.lightattack_states = [self.frames_move_right, self.frames_attackA, self.frames_move_left]
         self.lightattack_cur = 0
 
+        self.state_heavyattack = False
+        self.heavyattack_states = [self.frames_move_right, self.frames_roll, self.frames_move_right, self.frames_attackC, self.frames_move_left]
+        self.heavyattack_cur = 0
+
     def set_state(self):
         if self.state_idle:
             self.cur_sprlist = self.frames_idle
         else:
             if self.state_lightattack:
                 self.light_attack()
-                pass
+            elif self.state_heavyattack:
+                self.heavy_attack()
+
         # self.state_idle = True
         # if self.state_idle == False: check if the player is attacking or being attacked
 
@@ -1010,6 +1029,7 @@ class BattlePlayer(BattleNPC):
                 self.state_idle = True
                 self.lightattack_cur = 0
                 self.cur_frame = 0
+                self.game.tally(0,-50)
         self.image = self.cur_sprlist[self.cur_frame]
         
 
@@ -1017,10 +1037,45 @@ class BattlePlayer(BattleNPC):
         #this is the heavy attack animation
         #player rolls to the enemy, does a double-swipe, and roll back
         print("I used my heavy attack!")
-        self.state_idle = False
-        self.cur_frame = 0
-        self.cur_sprlist = self.frames_attackC
-        self.image = self.frames_idle[self.cur_frame]
+        self.cur_sprlist = self.heavyattack_states[self.heavyattack_cur]
+        if self.heavyattack_cur == 0:
+            if self.rect.x <= 200:
+                self.rect.x += 4
+            else:
+                self.rect.x = 200
+                self.heavyattack_cur+=1
+                self.cur_frame = 0
+                self.frame_delay = 65
+        elif self.heavyattack_cur == 1:
+            self.rect.x += 4
+            if self.cur_frame == 11:
+                self.heavyattack_cur+=1
+                self.cur_frame = 0
+                self.frame_delay = 200
+        elif self.heavyattack_cur == 2:
+            if self.rect.x <= 750:
+                self.rect.x += 4
+            else:
+                self.rect.x = 750
+                self.heavyattack_cur+=1
+                self.cur_frame = 0
+                self.frame_delay = 100
+        elif self.heavyattack_cur == 3:
+            if self.cur_frame == 9:
+                self.heavyattack_cur+=1
+                self.cur_frame = 0
+                self.frame_delay = 200
+        elif self.heavyattack_cur == 4:
+            if self.rect.x >= 100:
+                self.rect.x -= 4
+            else:
+                self.rect.x = 100
+                self.state_heavyattack = False
+                self.state_idle = True
+                self.heavyattack_cur = 0
+                self.cur_frame = 0
+                self.game.tally(0,-100)
+        self.image = self.cur_sprlist[self.cur_frame]
         
 
     def defend(self):
@@ -1060,6 +1115,7 @@ class BattleSkeleton(BattleEnemy):
         super().__init__(game, anch_x, anch_y)
         self.sourcefile = "skeleton"
         self.size_coef = 6
+        self.game.enemy_health = 150
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
 
@@ -1107,13 +1163,11 @@ class BattleMenu(pygame.sprite.Sprite):
     def create_text(self):
         name_list = ["Attack", "Heavy Attack", "Items"]
         self.text_list = []
-        text_var = 0
         for i in name_list:
-            text = self.font.render(name_list[text_var], True, (0,0,0))
+            text = self.font.render(i, True, (0,0,0))
             textwidth = text.get_size()
             self.text_list.append(text)
             self.text_list.append(textwidth)
-            text_var+=1
 
     def update(self):
         self.image.fill((30,55,150))
@@ -1153,10 +1207,15 @@ class BattleMenu(pygame.sprite.Sprite):
     def attack(self):
         # creates a random combo of inputs
         self.combo = [0,1,2,3,4,5]
-        #self.game.B_player.state_idle = False
+        self.game.B_player.state_idle = False
+        self.game.B_player.state_lightattack = True
+        self.game.B_player.cur_frame = 0
         print("I attack!")
 
     def heavy_attack(self):
+        self.game.B_player.state_idle = False
+        self.game.B_player.state_heavyattack = True
+        self.game.B_player.cur_frame = 0
         print("I heavy attack!")
 
     def items(self):
