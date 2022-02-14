@@ -167,18 +167,26 @@ class MainGame():
             elif input_var == 3:
                 # player pressed D
                 self.menu.selection += 1
-        elif self.B_player.state_lightattack:
+        elif self.B_player.state_lightattack or self.B_player.state_heavyattack:
             self.menu.combo.append(input_var)
             num_pos = len(self.menu.combo)-1
-            print(num_pos)
-            if input_var != self.menu.qt_event[num_pos]:
-                print("combo failed!")
+            if num_pos >= len(self.menu.qt_event): # the combo is over
+                return
+            elif input_var != self.menu.qt_event[num_pos]:
+                self.menu.combo_feedback(input_var, num_pos, False) # 1 failed hit
             else:
-                print("nice")
+                self.menu.combo_feedback(input_var, num_pos, True) # 1 successful hit
+                
 
-    def tally(self, delta_player, delta_enemy):
-        self.player_health += delta_player
-        self.enemy_health += delta_enemy
+    def tally(self, maxdmg_enemy, maxdmg_player):
+        ## first the function is going to check how many successful hits the player got
+        # proportionally to the total length of the combo
+        ## then the function is going to calculate the appropriate amount of damage, 
+        # proportionally to the maximum possible damage (and convert it into an integer)
+        # if the player got every single hit on time, blit an additional "Critical hit!" textbox and deal 1.5*damage
+        ## and lastly the function will allocate an appropriate amount of damage to each character's health
+        self.player_health += maxdmg_enemy
+        self.enemy_health += maxdmg_player
         print(self.enemy_health)
         # then it blits a small number in front of each character
         if self.player_health <= 0:
@@ -1191,7 +1199,9 @@ class BattleMenu(pygame.sprite.Sprite):
                 for i in spritelist:
                     if i == frame_prefix + str(counting_var) + ".png":
                         parsed_frame = spritesheet.parse_sprite(i)
-                        framelist.append(parsed_frame)
+                        pf_size = parsed_frame.get_size()
+                        bigger_frame = pygame.transform.scale(parsed_frame, (pf_size[0]*2,pf_size[1]*2))
+                        framelist.append(bigger_frame)
                         counting_var+=1
             suffvar+=1
         frames.clear()
@@ -1200,8 +1210,7 @@ class BattleMenu(pygame.sprite.Sprite):
         self.key_sprites = []
         for i in qt_list:
             key = self.keys_default[i]
-            bigger_key = pygame.transform.scale(key, (64,64))
-            self.key_sprites.append(bigger_key)
+            self.key_sprites.append(key)
         self.key_num = len(self.key_sprites)
         self.gap = 1080/(self.key_num-1) # gap is a float, will need to turn it into an integer before working with it
         
@@ -1229,7 +1238,8 @@ class BattleMenu(pygame.sprite.Sprite):
         if self.active_attack:
             var = 18
             for key in self.key_sprites:
-                self.image.blit(key, (var,18))
+                size = key.get_size()
+                self.image.blit(key, (var,82-size[1])) # second variable sets a ground level for every key
                 var += int(self.gap)
                 
         else:
@@ -1259,8 +1269,13 @@ class BattleMenu(pygame.sprite.Sprite):
     def attack(self):
         # creates a random combo of inputs
         self.active_attack = True
+        self.hits = 0
         self.combo = []
         self.qt_event = [3,0,3,4,5,1] # D W D J K A
+        #self.qt_event = []
+        #for i in range(6):
+        #    x = r.randint(0,5)
+        #    self.qt_event.append(x)
         self.create_qtbuttons(self.qt_event)
         
         
@@ -1271,6 +1286,7 @@ class BattleMenu(pygame.sprite.Sprite):
 
     def heavy_attack(self):
         self.active_attack = True
+        self.hits = 0
         self.combo = []
         self.qt_event = [3,3,2,2,3,4,5,4,1] # ddssdjkja
         self.create_qtbuttons(self.qt_event)
@@ -1284,8 +1300,19 @@ class BattleMenu(pygame.sprite.Sprite):
     def items(self):
         print("I picked items")
 
-
-
+    def combo_feedback(self, button_val, button_pos, hit):
+        # button_val is in integer that represents the value of the button
+        # button_pos is an integer that represents the position of the button
+        # hit is a bool that checks if the player successfully hit the button
+        ## this function will 
+        if hit:
+            self.key_sprites[button_pos] = self.keys_correct[button_val]
+            print("nice")
+        else:
+            self.key_sprites[button_pos] = self.keys_failed[button_val]
+            print("combo failed!")
+        
+        
 
 
 
