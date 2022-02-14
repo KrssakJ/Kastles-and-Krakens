@@ -41,6 +41,8 @@ class MainGame():
         self.font = pygame.font.SysFont("arial", 40)
         self.text_list = []
         self.text_delay = 0
+        self.battleloop_var = 1
+        self.battleloop_phase_delay = 0
 
         # in-game variables: health, stamina, special points, etc.
         self.player_health = 100
@@ -153,10 +155,56 @@ class MainGame():
         self.roaming = not self.roaming
         self.load_battle_sprites()
 
+    def battle_loop(self):
+        ## Battle phase has 5 different parts that cycle endlessly until one character dies
+        # 1) Menu phase: player controls a menu and picks what they want to do
+        # 2) Attack phase: player plays a short quick-time event while an attack animation plays
+        # 3) Tally phase 1: health is updated, text appears on screen
+        # 4) Defend phase: enemy attacks the player, player plays a quick-time event to defend against the attack
+        # 5) Tally phase 2: health is updated, text appears on screen
+        ## At the end of Tally phase 2, battle_loop loops back to the start
+
+        ## since battle_loop() triggers every frame, integer/time-sensitive variables should be handled by individual classes to prevent a softlock
+
+        # Phase 1
+        if self.battleloop_var == 1:
+            #print("phase 1")
+            self.B_player.state_idle = True
+            self.B_enemy.state_idle = True
+        # Phase 2
+        elif self.battleloop_var == 2:
+            #print("phase 2")
+            self.B_player.state_idle = False
+            self.menu.active_attack = True
+        # Phase 3
+        elif self.battleloop_var == 3:
+            self.B_player.state_idle = True
+            self.B_player.state_lightattack = False
+            self.B_player.state_heavyattack = False
+            self.menu.active_attack = False
+            self.draw_text()
+        # Phase 4 WIP
+        elif self.battleloop_var == 4:
+            self.B_enemy.state_idle = False
+            self.B_enemy.state_attackA = True
+            #self.menu.active_defend = True
+        # Phase 5 WIP
+        elif self.battleloop_var == 5:
+            self.B_enemy.state_idle = True
+            self.B_enemy.state_attackA = False
+            # self.menu.active_defend = False
+            self.draw_text()
+        else:
+            self.battleloop_var = 1
+        pass
+
     def do_menu_thing(self):
-        if self.B_player.state_idle:
+        if self.battleloop_var == 1:
+            self.battleloop_var += 1
+            print(self.battleloop_var)
             func = self.menu.menu_list[self.menu.selection]
             func()
+            
 
     def attack(self, input_var):
         if self.roaming:
@@ -179,7 +227,6 @@ class MainGame():
                 self.menu.combo_feedback(input_var, num_pos, False) # 1 failed hit
             else:
                 self.menu.combo_feedback(input_var, num_pos, True) # 1 successful hit
-                
 
     def tally(self, maxdmg_enemy, maxdmg_player):
         ## first the function is going to check how many successful hits the player got
@@ -242,21 +289,22 @@ class MainGame():
         self.text_list.append(textfile)
 
     def draw_text(self):
+        # could move this into battle_loop
+        #print("drawing text")
         now = pygame.time.get_ticks()
         if self.B_player.state_idle and now - self.text_delay > 1000:
             # text only stays on screen for 1 second
             self.text_list.clear()
+            self.battleloop_var += 1
         for i in self.text_list:
             #text_coords = text[1]
             self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
-
 
     def instakill_enemy(self):
         if len(self.game_battle_sprites) == 0:
             return
         self.game_battle_sprites.remove(self.B_enemy)
         self.enemy.alive = False
-
 
     def load_battle_sprites(self):
         self.B_player = BattlePlayer(self, 100, 800)
@@ -311,10 +359,12 @@ class MainGame():
                 self.game_sprites.draw(self.main_screen)
             else:
                 self.check_for_battle()
+                
                 self.main_screen.blit(self.cur_battle_bg, (0,0))
                 self.game_battle_sprites.update()
                 self.game_battle_sprites.draw(self.main_screen)
-                self.draw_text()
+                self.battle_loop()
+                #self.draw_text()
             #print(self.roaming)
             
             
@@ -324,6 +374,7 @@ class MainGame():
             pygame.display.flip()
 
     def check_for_battle(self):
+        # could potentially move this to battle_loop
         if len(self.game_battle_sprites) <= 2:
             #print("aight we're done")
             self.game_battle_sprites.empty()
@@ -1095,11 +1146,9 @@ class BattlePlayer(BattleNPC):
                 self.rect.x -=4
             else:
                 self.rect.x = 100
-                self.state_lightattack = False
-                self.state_idle = True
-                self.lightattack_cur = 0
                 self.cur_frame = 0
-                self.game.menu.active_attack = False
+                self.lightattack_cur = 0
+                self.game.battleloop_var += 1
                 self.game.tally(0,-50)
         self.image = self.cur_sprlist[self.cur_frame]
         
@@ -1140,11 +1189,9 @@ class BattlePlayer(BattleNPC):
                 self.rect.x -= 4
             else:
                 self.rect.x = 100
-                self.state_heavyattack = False
-                self.state_idle = True
-                self.heavyattack_cur = 0
                 self.cur_frame = 0
-                self.game.menu.active_attack = False
+                self.heavyattack_cur = 0
+                self.game.battleloop_var += 1
                 self.game.tally(0,-100)
         self.image = self.cur_sprlist[self.cur_frame]
         
@@ -1170,8 +1217,30 @@ class BattleEnemy(BattleNPC):
     def __init__(self, game, anch_x, anch_y):
         super().__init__(game, anch_x, anch_y)
         self.game.enemy_health = 150
+        self.state_idle = True
+        self.state_attackA = False
+        self.state_attackB = False
+
     def flip_sprite(self):
-        self.bigger_sprite = pygame.transform.flip(self.bigger_sprite, True, False)
+        # this is dumb, just delete it
+        pass
+    
+    def set_state(self):
+        if self.state_idle:
+            self.cur_sprlist = self.frames_idle
+        else:
+            if self.state_attackA:
+                self.attackA()
+            elif self.state_attackB:
+                self.attackB()
+
+    def attackA(self):
+        pass
+
+    def attackB(self):
+        pass
+
+
 
 class BattleGoblin(BattleEnemy):
     def __init__(self, game, anch_x, anch_y):
@@ -1191,6 +1260,37 @@ class BattleSkeleton(BattleEnemy):
         self.game.enemy_health = 175
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
+
+        self.attackA_states = [self.frames_move_left, self.frames_attackA, self.frames_attackB, self.frames_move_right]
+        self.attackA_cur = 0
+
+    def attackA(self):
+        self.cur_sprlist = self.attackA_states[self.attackA_cur]
+        if self.attackA_cur == 0:
+            if self.rect.x >= 200:
+                self.rect.x -= 4
+            else:
+                self.rect.x = 200
+                self.attackA_cur+=1
+                self.cur_frame = 0
+        elif self.attackA_cur == 1:
+            if self.cur_frame == 7:
+                self.attackA_cur+=1
+                self.cur_frame = 0
+        elif self.attackA_cur == 2:
+            if self.cur_frame == 7:
+                self.attackA_cur+=1
+                self.cur_frame = 0
+        elif self.attackA_cur == 3:
+            if self.rect.x <= 1000:
+                self.rect.x += 4
+            else:
+                self.rect.x = 1000
+                self.cur_frame = 0
+                self.attackA_cur = 0
+                self.game.battleloop_var += 1
+                self.game.tally(-20,0)
+        self.image = self.cur_sprlist[self.cur_frame]
 
 
 class BattleWorm(BattleEnemy):
@@ -1338,9 +1438,10 @@ class BattleMenu(pygame.sprite.Sprite):
         self.create_qtbuttons(self.qt_event)
         
         
-        self.game.B_player.state_idle = False
+        
+        #self.game.battleloop_var += 1
         self.game.B_player.state_lightattack = True
-        self.game.B_player.cur_frame = 0
+        
         print("I attack!")
 
     def heavy_attack(self):
@@ -1351,9 +1452,10 @@ class BattleMenu(pygame.sprite.Sprite):
         self.create_qtbuttons(self.qt_event)
 
 
-        self.game.B_player.state_idle = False
+        
+        #self.game.battleloop_var += 1
         self.game.B_player.state_heavyattack = True
-        self.game.B_player.cur_frame = 0
+        
         print("I heavy attack!")
 
     def items(self):
