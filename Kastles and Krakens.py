@@ -11,12 +11,8 @@ pygame.display.set_caption("Kastles and Krakens")
 
 class MainGame():
     def __init__(self):
-        ### TO DO:
-        # Differentiating between sprites and battle_sprites using a trigger
-        # Battle phase, at least something
         self.load_variables()
         self.load_rooms()
-        #self.load_battle_sprites()
 
     def load_variables(self):
         self.running = True
@@ -26,6 +22,8 @@ class MainGame():
         self.clock = pygame.time.Clock()
         self.prev_time = t.time()
         
+        
+
         self.key_w = False
         self.key_a = False
         self.key_s = False
@@ -39,6 +37,11 @@ class MainGame():
         self.cur_battle_bg.blit(self.battle_bg_file,(0,0))
         self.game_battle_sprites = pygame.sprite.Group()
         
+        # battle text variables: font, text list, etc.
+        self.font = pygame.font.SysFont("arial", 40)
+        self.text_list = []
+        self.text_delay = 0
+
         # in-game variables: health, stamina, special points, etc.
         self.player_health = 100
         self.enemy_health = 100
@@ -185,10 +188,26 @@ class MainGame():
         # proportionally to the maximum possible damage (and convert it into an integer)
         # if the player got every single hit on time, blit an additional "Critical hit!" textbox and deal 1.5*damage
         ## and lastly the function will allocate an appropriate amount of damage to each character's health
-        self.player_health += maxdmg_enemy
-        self.enemy_health += maxdmg_player
-        print(self.enemy_health)
-        # then it blits a small number in front of each character
+        success_hits = self.menu.hits
+        combo_length = len(self.menu.qt_event)
+        dmg_multiplier = 1
+        hit_ratio = success_hits/combo_length
+        if hit_ratio == 1: # perfect combo
+            dmg_multiplier = 1.5
+            if maxdmg_enemy != 0: # enemy dealt critical hit
+                self.animate_text("Critical hit!",3)
+            else: # player hit critical hit
+                self.animate_text("Critical hit!",2)
+            print("perfect combo!")
+        enemydmg_total = int(maxdmg_enemy*hit_ratio*dmg_multiplier)
+        self.player_health += enemydmg_total
+        if enemydmg_total != 0:
+            self.animate_text(enemydmg_total,0)
+        playerdmg_total = int(maxdmg_player*hit_ratio*dmg_multiplier)
+        self.enemy_health += playerdmg_total
+        if playerdmg_total != 0:
+            self.animate_text(playerdmg_total,1)
+        # check if any character has died
         if self.player_health <= 0:
             print("you died")
         elif self.enemy_health <= 0:
@@ -196,10 +215,44 @@ class MainGame():
             self.game_battle_sprites.remove(self.B_enemy)
             self.enemy.alive = False
 
+    def animate_text(self, damage, text_type):
+        ## text types: 0-player damaged, 1-enemy damaged, 2-critical hit player, 3-critical hit enemy, 4-potion
+        if damage == 0:
+            return
+        self.text_delay = pygame.time.get_ticks()
+        colour = (200,0,0)
+        if type(damage) == int and damage > 0:
+            colour = (0,200,0)
+
+        text = self.font.render(str(damage), True, colour)
+        
+        textwidth = text.get_size() # is this actually that important?
+
+        if text_type == 0 or text_type == 4: # player took damage or drank a potion
+            text_coords = [210,535]
+        elif text_type == 1: # enemy took damage
+            text_coords = [1000,450]
+        elif text_type == 2: # player dealt a critical hit
+            text_coords = [1000,400]
+        elif text_type == 3: # enemy dealt a critical hit
+            text_coords = [210,485]
+        else: # default text coordinates
+            text_coords = [0,0]
+        textfile = Text(text, textwidth, text_coords)
+        self.text_list.append(textfile)
+
+    def draw_text(self):
+        now = pygame.time.get_ticks()
+        if self.B_player.state_idle and now - self.text_delay > 1000:
+            # text only stays on screen for 1 second
+            self.text_list.clear()
+        for i in self.text_list:
+            #text_coords = text[1]
+            self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
+
 
     def instakill_enemy(self):
         if len(self.game_battle_sprites) == 0:
-            print("nope")
             return
         self.game_battle_sprites.remove(self.B_enemy)
         self.enemy.alive = False
@@ -261,6 +314,7 @@ class MainGame():
                 self.main_screen.blit(self.cur_battle_bg, (0,0))
                 self.game_battle_sprites.update()
                 self.game_battle_sprites.draw(self.main_screen)
+                self.draw_text()
             #print(self.roaming)
             
             
@@ -281,6 +335,12 @@ class MainGame():
         self.game_sprites.empty()
         pygame.display.set_caption("Congratulations!")
         
+class Text():
+    def __init__(self, text, size, coords):
+        #Text structure: str(actual text), [size of text], [position of text]
+        self.text = text
+        self.size = size
+        self.coords = coords
 
 class Spritesheet():
     def __init__(self, filename):
@@ -562,7 +622,6 @@ class Enemy(NPC):
         self.anch_x = int(anch_x)
         self.anch_y = int(anch_y)
         self.id = id
-        #self.new_pos = [self.rect.x,self.rect.y]
         self.at_home = True
         self.player_spotted = False
         self.wandering = False
@@ -1155,7 +1214,7 @@ class BattleMenu(pygame.sprite.Sprite):
         self.selection = 0
         self.menu_list = [self.attack, self.heavy_attack, self.items]
         self.len_var = len(self.menu_list)
-        self.font = pygame.font.SysFont("arial", 32)
+        self.font = self.game.font
         self.active_attack = False
 
 
@@ -1212,7 +1271,7 @@ class BattleMenu(pygame.sprite.Sprite):
             key = self.keys_default[i]
             self.key_sprites.append(key)
         self.key_num = len(self.key_sprites)
-        self.gap = 1080/(self.key_num-1) # gap is a float, will need to turn it into an integer before working with it
+        self.gap = 1080//(self.key_num-1) # gap is an integer
         
 
     def create_text(self):
@@ -1240,7 +1299,7 @@ class BattleMenu(pygame.sprite.Sprite):
             for key in self.key_sprites:
                 size = key.get_size()
                 self.image.blit(key, (var,82-size[1])) # second variable sets a ground level for every key
-                var += int(self.gap)
+                var += self.gap
                 
         else:
             var = 100
@@ -1307,10 +1366,11 @@ class BattleMenu(pygame.sprite.Sprite):
         ## this function will 
         if hit:
             self.key_sprites[button_pos] = self.keys_correct[button_val]
-            print("nice")
+            self.hits+=1
+            #print("nice")
         else:
             self.key_sprites[button_pos] = self.keys_failed[button_val]
-            print("combo failed!")
+            #print("combo failed!")
         
         
 
