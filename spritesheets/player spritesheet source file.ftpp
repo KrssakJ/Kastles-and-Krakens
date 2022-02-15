@@ -75,6 +75,86 @@
       "folder": ""
     },
     {
+      "name": "knight_death1.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death1.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death10.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death10.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death2.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death2.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death3.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death3.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death4.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death4.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death5.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death5.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death6.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death6.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death7.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death7.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death8.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death8.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_death9.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_death9.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_duck1.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_duck1.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_duck2.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_duck2.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_duck3.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_duck3.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_hit1.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_hit1.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_hit2.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_hit2.png",
+      "folder": ""
+    },
+    {
+      "name": "knight_hit3.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_hit3.png",
+      "folder": ""
+    },
+    {
       "name": "knight_idle1.png",
       "path": "C:/Users/jozko.krssak/Desktop/Knight Sprites/knight_idle1.png",
       "folder": ""
@@ -309,7 +389,7 @@
     "allowTrim": true,
     "trimMode": "trim",
     "alphaThreshold": "0",
-    "detectIdentical": false,
+    "detectIdentical": true,
     "packer": "MaxRectsBin",
     "packerMethod": "BestShortSideFit"
   }

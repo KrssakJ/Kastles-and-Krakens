@@ -185,14 +185,19 @@ class MainGame():
             self.draw_text()
         # Phase 4 WIP
         elif self.battleloop_var == 4:
+            self.B_player.state_idle = False
+            self.B_player.state_duck = True
             self.B_enemy.state_idle = False
             self.B_enemy.state_attackA = True
-            #self.menu.active_defend = True
+            #self.menu.defend()
+            self.menu.active_defend = True
         # Phase 5 WIP
         elif self.battleloop_var == 5:
+            self.B_player.state_idle = True
+            self.B_player.state_duck = False
             self.B_enemy.state_idle = True
             self.B_enemy.state_attackA = False
-            # self.menu.active_defend = False
+            self.menu.active_defend = False
             self.draw_text()
         else:
             self.battleloop_var = 1
@@ -218,8 +223,9 @@ class MainGame():
             elif input_var == 3:
                 # player pressed D
                 self.menu.selection += 1
-        elif self.B_player.state_lightattack or self.B_player.state_heavyattack:
+        elif self.menu.active_attack or self.menu.active_defend:
             self.menu.combo.append(input_var)
+            print(self.menu.combo)
             num_pos = len(self.menu.combo)-1
             if num_pos >= len(self.menu.qt_event): # the combo is over
                 return
@@ -249,11 +255,11 @@ class MainGame():
         enemydmg_total = int(maxdmg_enemy*hit_ratio*dmg_multiplier)
         self.player_health += enemydmg_total
         if enemydmg_total != 0:
-            self.animate_text(enemydmg_total,0)
+            self.animate_text(enemydmg_total,0) # player takes damage
         playerdmg_total = int(maxdmg_player*hit_ratio*dmg_multiplier)
         self.enemy_health += playerdmg_total
         if playerdmg_total != 0:
-            self.animate_text(playerdmg_total,1)
+            self.animate_text(playerdmg_total,1) # enemy takes damage
         # check if any character has died
         if self.player_health <= 0:
             print("you died")
@@ -296,6 +302,8 @@ class MainGame():
             # text only stays on screen for 1 second
             self.text_list.clear()
             self.battleloop_var += 1
+            if self.battleloop_var == 4:
+                self.menu.defend()
         for i in self.text_list:
             #text_coords = text[1]
             self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
@@ -316,7 +324,7 @@ class MainGame():
         if self.enemy.sourcefile == "red_enemy_sprites.png":
             self.B_enemy = BattleGoblin(self, 1000, 650)
         elif self.enemy.sourcefile == "blue_enemy_sprites.png":
-            self.B_enemy = BattleSkeleton(self, 1000, 800)
+            self.B_enemy = BattleSkeleton(self, 1240, 800)
         elif self.enemy.sourcefile == "fireworm_sprites.png":
             self.B_enemy = BattleWorm(self,1000, 650)
         else:
@@ -1018,6 +1026,7 @@ class BattleNPC(pygame.sprite.Sprite):
         self.direction_x = 0
         self.direction_y = 0
         self.animation_time = 0
+        self.delay_var = 0
         self.size_coef = 6
         self.frame_delay = 200
 
@@ -1074,11 +1083,15 @@ class BattleNPC(pygame.sprite.Sprite):
         self.set_state()
         self.animate()
         self.bigger_sprite = pygame.transform.scale(self.base_sprite, (self.size[0]*self.size_coef, self.size[1]*self.size_coef))
+        self.calibrate_x()
         self.rect.y = self.anch_y - self.size[1]*self.size_coef # sets a stable ground level by changing the sprite's Y coordinate based on its height
         self.flip_sprite()
         
         self.image = self.bigger_sprite
         
+    def calibrate_x(self):
+        pass
+
     def flip_sprite(self):
         pass
 
@@ -1093,6 +1106,7 @@ class BattleNPC(pygame.sprite.Sprite):
         if now - self.animation_time > self.frame_delay:
             self.animation_time = now
             self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
+            #print(self.sourcefile, self.cur_frame)
         self.base_sprite = self.cur_sprlist[self.cur_frame]
         self.size = self.base_sprite.get_size()
         
@@ -1121,6 +1135,10 @@ class BattlePlayer(BattleNPC):
                 self.light_attack()
             elif self.state_heavyattack:
                 self.heavy_attack()
+            elif self.state_duck or self.state_roll:
+                self.defend()
+            else:
+                self.cur_sprlist = self.frames_idle
 
         # self.state_idle = True
         # if self.state_idle == False: check if the player is attacking or being attacked
@@ -1199,14 +1217,15 @@ class BattlePlayer(BattleNPC):
     def defend(self):
         #this is the defend animation
         #2 variations based on enemy type: either a simple ducking motion, or a parry+riposte
-        print("I'm defending!")
-        self.state_idle = False
-        self.cur_frame = 0
-        if self.state_duck:
-            self.cur_sprlist = self.frames_duck
-        else:
-            self.cur_sprlist = self.frames_roll
-        self.image = self.frames_idle[self.cur_frame]
+        pass
+        #print("I'm defending!")
+        #self.state_idle = False
+        #self.cur_frame = 0
+        #if self.state_duck:
+        #    self.cur_sprlist = self.frames_duck
+        #else:
+        #    self.cur_sprlist = self.frames_roll
+        #self.image = self.frames_idle[self.cur_frame]
         
 
 
@@ -1220,11 +1239,18 @@ class BattleEnemy(BattleNPC):
         self.state_idle = True
         self.state_attackA = False
         self.state_attackB = False
+        self.pos_x = self.anch_x
 
     def flip_sprite(self):
         # this is dumb, just delete it
         pass
-    
+
+    def calibrate_x(self):
+        # maybe add self.pos_x to battleplayer?
+        self.rect.x = self.pos_x - self.size[0]*self.size_coef
+        
+
+
     def set_state(self):
         if self.state_idle:
             self.cur_sprlist = self.frames_idle
@@ -1250,7 +1276,7 @@ class BattleGoblin(BattleEnemy):
         self.game.enemy_health = 125
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
-
+        
 
 class BattleSkeleton(BattleEnemy):
     def __init__(self, game, anch_x, anch_y):
@@ -1267,25 +1293,37 @@ class BattleSkeleton(BattleEnemy):
     def attackA(self):
         self.cur_sprlist = self.attackA_states[self.attackA_cur]
         if self.attackA_cur == 0:
-            if self.rect.x >= 200:
-                self.rect.x -= 4
+            if self.pos_x >= 600:
+                # this could be higher, 600 is pretty good
+                self.pos_x -= 4
             else:
-                self.rect.x = 200
+                self.pos_x = 600
                 self.attackA_cur+=1
                 self.cur_frame = 0
+                self.frame_delay = 100
         elif self.attackA_cur == 1:
             if self.cur_frame == 7:
                 self.attackA_cur+=1
                 self.cur_frame = 0
+                self.frame_delay = 500 # THIS animation delay works
+                #self.delay_var = pygame.time.get_ticks()
         elif self.attackA_cur == 2:
-            if self.cur_frame == 7:
+            # maybe add a small delay after the second swipe? to increase the impact
+            if self.cur_frame == 1:
+                self.frame_delay = 100
+            elif self.cur_frame == 6:
+                print("delay")
+                self.frame_delay = 700
+            elif self.cur_frame == 7:
                 self.attackA_cur+=1
                 self.cur_frame = 0
+                self.frame_delay = 200 # THIS animation delay doesn't work for some reason
         elif self.attackA_cur == 3:
-            if self.rect.x <= 1000:
-                self.rect.x += 4
+            if self.pos_x <= 1240:
+                self.pos_x += 4
+                #print(self.rect.x)
             else:
-                self.rect.x = 1000
+                self.pos_x = 1240
                 self.cur_frame = 0
                 self.attackA_cur = 0
                 self.game.battleloop_var += 1
@@ -1316,6 +1354,7 @@ class BattleMenu(pygame.sprite.Sprite):
         self.len_var = len(self.menu_list)
         self.font = self.game.font
         self.active_attack = False
+        self.active_defend = False
 
 
     def load_spritevariables(self):
@@ -1375,7 +1414,7 @@ class BattleMenu(pygame.sprite.Sprite):
         
 
     def create_text(self):
-        name_list = ["Attack", "Heavy Attack", "Items"]
+        name_list = ["Attack", "Heavy Attack", "Potion"]
         self.text_list = []
         for i in name_list:
             text = self.font.render(i, True, (0,0,0))
@@ -1386,21 +1425,15 @@ class BattleMenu(pygame.sprite.Sprite):
     def update(self):
         self.image.fill((30,55,150))
         self.pick_action()
-        self.set_cursor_pos()
         self.paint_buttons()
 
-    def set_cursor_pos(self):
-        # do i actually need a cursor? with the border thing and all
-        pass
-
     def paint_buttons(self):
-        if self.active_attack:
+        if self.active_attack or self.active_defend:
             var = 18
             for key in self.key_sprites:
                 size = key.get_size()
                 self.image.blit(key, (var,82-size[1])) # second variable sets a ground level for every key
                 var += self.gap
-                
         else:
             var = 100
             text_var = 0
@@ -1427,7 +1460,7 @@ class BattleMenu(pygame.sprite.Sprite):
 
     def attack(self):
         # creates a random combo of inputs
-        self.active_attack = True
+        #self.active_attack = True
         self.hits = 0
         self.combo = []
         self.qt_event = [3,0,3,4,5,1] # D W D J K A
@@ -1436,29 +1469,35 @@ class BattleMenu(pygame.sprite.Sprite):
         #    x = r.randint(0,5)
         #    self.qt_event.append(x)
         self.create_qtbuttons(self.qt_event)
-        
-        
-        
-        #self.game.battleloop_var += 1
         self.game.B_player.state_lightattack = True
         
         print("I attack!")
 
     def heavy_attack(self):
-        self.active_attack = True
+        #self.active_attack = True
         self.hits = 0
         self.combo = []
         self.qt_event = [3,3,2,2,3,4,5,4,1] # ddssdjkja
         self.create_qtbuttons(self.qt_event)
-
-
-        
-        #self.game.battleloop_var += 1
         self.game.B_player.state_heavyattack = True
         
         print("I heavy attack!")
 
+    def defend(self):
+        print("I defend!")
+        self.active_defend = True
+        self.hits = 0
+        self.combo = []
+        self.qt_event = [1,1,2,3,2,1]
+        self.create_qtbuttons(self.qt_event)
+        ## There is no one defend state, there's a roll/duck animation
+        #self.game.B_player.state_defend = True
+        
+        
+        pass
+
     def items(self):
+        self.game.tally(50,0)
         print("I picked items")
 
     def combo_feedback(self, button_val, button_pos, hit):
