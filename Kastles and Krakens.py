@@ -186,7 +186,7 @@ class MainGame():
         # Phase 4 WIP
         elif self.battleloop_var == 4:
             self.B_player.state_idle = False
-            self.B_player.state_duck = True
+            #self.B_player.state_duck = True
             self.B_enemy.state_idle = False
             self.B_enemy.state_attackA = True
             #self.menu.defend()
@@ -194,7 +194,7 @@ class MainGame():
         # Phase 5 WIP
         elif self.battleloop_var == 5:
             self.B_player.state_idle = True
-            self.B_player.state_duck = False
+            #self.B_player.state_duck = False
             self.B_enemy.state_idle = True
             self.B_enemy.state_attackA = False
             self.menu.active_defend = False
@@ -210,7 +210,6 @@ class MainGame():
             func = self.menu.menu_list[self.menu.selection]
             func()
             
-
     def attack(self, input_var):
         if self.roaming:
             return
@@ -1135,34 +1134,50 @@ class BattlePlayer(BattleNPC):
                 self.light_attack()
             elif self.state_heavyattack:
                 self.heavy_attack()
-            elif self.state_duck or self.state_roll:
-                self.defend()
+            elif self.state_duck:
+                self.duck()
             else:
                 self.cur_sprlist = self.frames_idle
 
         # self.state_idle = True
         # if self.state_idle == False: check if the player is attacking or being attacked
 
+    def anim_action(self, framelist, sequence_var):
+        # i know that it'd be nice to streamline animations, but is this actually necessary?
+        # like you can't use movement functions with this because they're too complicated
+        # you can use attack functions with this but it's like 3 lines of code, who gives a shit 
+        len_var = len(framelist)
+        if self.cur_frame == len_var-1:
+            sequence_var += 1
+            self.cur_frame = 0
+        
+        pass
+
+
     def light_attack(self):
         #this is the light attack animation
         #player moves to the enemy, swipes and moves back
         #print("I used my light attack!")
         self.cur_sprlist = self.lightattack_states[self.lightattack_cur]
-        if self.lightattack_cur == 0:
+        if self.lightattack_cur == 0: # this part looks kind of choppy, maybe consider adding self.posx from skeleton
             if self.rect.x <= 750:
                 self.rect.x += 4
+                self.frame_delay = 150
             else:
                 self.rect.x = 750
                 self.lightattack_cur+=1
                 self.cur_frame = 0
+                self.frame_delay = 200
         elif self.lightattack_cur == 1:
             if self.cur_frame == 3:
                 self.lightattack_cur+=1
                 self.cur_frame = 0
+                self.frame_delay = 150
         elif self.lightattack_cur == 2:
             if self.rect.x >= 100:
                 self.rect.x -=4
             else:
+                self.frame_delay = 200
                 self.rect.x = 100
                 self.cur_frame = 0
                 self.lightattack_cur = 0
@@ -1226,9 +1241,12 @@ class BattlePlayer(BattleNPC):
         #else:
         #    self.cur_sprlist = self.frames_roll
         #self.image = self.frames_idle[self.cur_frame]
+
+    def duck(self):
         
-
-
+        
+        
+        pass
 
 
 
@@ -1292,6 +1310,7 @@ class BattleSkeleton(BattleEnemy):
 
     def attackA(self):
         self.cur_sprlist = self.attackA_states[self.attackA_cur]
+        self.image = self.cur_sprlist[self.cur_frame]
         if self.attackA_cur == 0:
             if self.pos_x >= 600:
                 # this could be higher, 600 is pretty good
@@ -1300,25 +1319,33 @@ class BattleSkeleton(BattleEnemy):
                 self.pos_x = 600
                 self.attackA_cur+=1
                 self.cur_frame = 0
+                self.game.B_player.state_duck = True
                 self.frame_delay = 100
         elif self.attackA_cur == 1:
             if self.cur_frame == 7:
                 self.attackA_cur+=1
                 self.cur_frame = 0
-                self.frame_delay = 500 # THIS animation delay works
-                #self.delay_var = pygame.time.get_ticks()
+                self.frame_delay = 500
+                self.game.B_player.state_duck = False
+                self.game.B_player.state_idle = True
+                #self.game.B_player.state_counterattack = True
         elif self.attackA_cur == 2:
             # maybe add a small delay after the second swipe? to increase the impact
             if self.cur_frame == 1:
                 self.frame_delay = 100
-            elif self.cur_frame == 6:
-                print("delay")
-                self.frame_delay = 700
-            elif self.cur_frame == 7:
-                self.attackA_cur+=1
+                print(len(self.cur_sprlist))
+            elif self.cur_frame == 8:
+                self.frame_delay = 600
+            elif self.cur_frame == 9:
+                self.frame_delay = 200
+                self.attackA_cur+=1 # this is why the delay doesn't work, it's because it switches to the next spritelist
                 self.cur_frame = 0
-                self.frame_delay = 200 # THIS animation delay doesn't work for some reason
+                #self.game.B_player.state_counterattack = False
+                #self.game.B_player.state_idle = True
+                
         elif self.attackA_cur == 3:
+            #if self.cur_frame == 1:
+                #self.frame_delay = 200
             if self.pos_x <= 1240:
                 self.pos_x += 4
                 #print(self.rect.x)
@@ -1326,9 +1353,10 @@ class BattleSkeleton(BattleEnemy):
                 self.pos_x = 1240
                 self.cur_frame = 0
                 self.attackA_cur = 0
+                
                 self.game.battleloop_var += 1
                 self.game.tally(-20,0)
-        self.image = self.cur_sprlist[self.cur_frame]
+        
 
 
 class BattleWorm(BattleEnemy):
@@ -1497,7 +1525,7 @@ class BattleMenu(pygame.sprite.Sprite):
         pass
 
     def items(self):
-        self.game.tally(50,0)
+        #self.game.tally(50,0)
         print("I picked items")
 
     def combo_feedback(self, button_val, button_pos, hit):

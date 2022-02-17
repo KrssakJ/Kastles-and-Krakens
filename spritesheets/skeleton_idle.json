@@ -432,20 +432,20 @@
         "y": 0.5
       }
     },
-    "skeleton_attackA3.png": {
+    "skeleton_attackB10.png": {
       "frame": {
         "x": 878,
         "y": 49,
-        "w": 36,
-        "h": 57
+        "w": 37,
+        "h": 61
       },
       "rotated": false,
       "trimmed": true,
       "spriteSourceSize": {
-        "x": 61,
-        "y": 44,
-        "w": 36,
-        "h": 57
+        "x": 55,
+        "y": 40,
+        "w": 37,
+        "h": 61
       },
       "sourceSize": {
         "w": 150,
@@ -456,7 +456,7 @@
         "y": 0.5
       }
     },
-    "skeleton_attackA4.png": {
+    "skeleton_attackA3.png": {
       "frame": {
         "x": 608,
         "y": 50,
@@ -480,7 +480,7 @@
         "y": 0.5
       }
     },
-    "skeleton_attackA5.png": {
+    "skeleton_attackA4.png": {
       "frame": {
         "x": 644,
         "y": 50,
@@ -504,9 +504,33 @@
         "y": 0.5
       }
     },
-    "skeleton_attackB6.png": {
+    "skeleton_attackA5.png": {
       "frame": {
         "x": 680,
+        "y": 50,
+        "w": 36,
+        "h": 57
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 61,
+        "y": 44,
+        "w": 36,
+        "h": 57
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 150
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "skeleton_attackB6.png": {
+      "frame": {
+        "x": 716,
         "y": 50,
         "w": 35,
         "h": 52
@@ -530,7 +554,7 @@
     },
     "skeleton_attackB3.png": {
       "frame": {
-        "x": 715,
+        "x": 751,
         "y": 50,
         "w": 34,
         "h": 51
@@ -554,7 +578,7 @@
     },
     "skeleton_attackB4.png": {
       "frame": {
-        "x": 749,
+        "x": 785,
         "y": 50,
         "w": 34,
         "h": 51
@@ -578,7 +602,7 @@
     },
     "skeleton_attackB5.png": {
       "frame": {
-        "x": 783,
+        "x": 819,
         "y": 50,
         "w": 34,
         "h": 51
@@ -602,8 +626,8 @@
     },
     "skeleton_attackB1.png": {
       "frame": {
-        "x": 817,
-        "y": 50,
+        "x": 751,
+        "y": 101,
         "w": 33,
         "h": 49
       },
@@ -626,8 +650,8 @@
     },
     "skeleton_attackB2.png": {
       "frame": {
-        "x": 817,
-        "y": 99,
+        "x": 716,
+        "y": 102,
         "w": 33,
         "h": 49
       },
@@ -650,7 +674,7 @@
     },
     "skeleton_attackA6.png": {
       "frame": {
-        "x": 715,
+        "x": 784,
         "y": 101,
         "w": 31,
         "h": 57
@@ -662,6 +686,30 @@
         "y": 44,
         "w": 31,
         "h": 57
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 150
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "skeleton_attackB9.png": {
+      "frame": {
+        "x": 878,
+        "y": 49,
+        "w": 37,
+        "h": 61
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 55,
+        "y": 40,
+        "w": 37,
+        "h": 61
       },
       "sourceSize": {
         "w": 150,
