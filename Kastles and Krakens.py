@@ -1,4 +1,3 @@
-from tkinter import Menu
 import pygame, pytmx
 import time as t
 import math as m
@@ -1029,8 +1028,7 @@ class BattleNPC(pygame.sprite.Sprite):
         self.size_coef = 6
         self.frame_delay = 200
 
-        self.state_duck = True
-        self.state_roll = False      
+           
 
     def load_frames(self):
         spritesheet = Spritesheet(self.sourcefile+"_idle.png")
@@ -1126,6 +1124,9 @@ class BattlePlayer(BattleNPC):
         self.heavyattack_states = [self.frames_move_right, self.frames_roll, self.frames_move_right, self.frames_attackC, self.frames_move_left]
         self.heavyattack_cur = 0
 
+        self.state_duck = False
+        self.state_counterattack = False
+
     def set_state(self):
         if self.state_idle:
             self.cur_sprlist = self.frames_idle
@@ -1136,6 +1137,9 @@ class BattlePlayer(BattleNPC):
                 self.heavy_attack()
             elif self.state_duck:
                 self.duck()
+            elif self.state_counterattack:
+                print("state check")
+                self.counterattack()
             else:
                 self.cur_sprlist = self.frames_idle
 
@@ -1243,11 +1247,28 @@ class BattlePlayer(BattleNPC):
         #self.image = self.frames_idle[self.cur_frame]
 
     def duck(self):
+        print("i duck!", len(self.frames_duck))
+        self.cur_sprlist = self.frames_duck
+        if self.cur_frame == 1:
+            self.frame_delay = 1500
+        elif self.cur_frame == 2: # does not trigger atm due to the delay being too long
+            print("endseq check")
+            self.frame_delay = 200
+            self.cur_frame = 0
+            self.state_duck = False
+            self.state_idle = True
         
-        
-        
-        pass
-
+    def counterattack(self):
+        print("i counterattack")
+        self.cur_sprlist = self.frames_attackA
+        if self.cur_frame == 0:
+            self.frame_delay = 1800
+        elif self.cur_frame == 1:
+            self.frame_delay = 200
+        elif self.cur_frame == 3:
+            self.cur_frame = 0
+            self.state_counterattack = False
+            self.state_idle = True
 
 
 class BattleEnemy(BattleNPC):
@@ -1259,9 +1280,6 @@ class BattleEnemy(BattleNPC):
         self.state_attackB = False
         self.pos_x = self.anch_x
 
-    def flip_sprite(self):
-        # this is dumb, just delete it
-        pass
 
     def calibrate_x(self):
         # maybe add self.pos_x to battleplayer?
@@ -1312,36 +1330,39 @@ class BattleSkeleton(BattleEnemy):
         self.cur_sprlist = self.attackA_states[self.attackA_cur]
         self.image = self.cur_sprlist[self.cur_frame]
         if self.attackA_cur == 0:
-            if self.pos_x >= 600:
+            if self.pos_x >= 680:
                 # this could be higher, 600 is pretty good
                 self.pos_x -= 4
             else:
-                self.pos_x = 600
+                self.pos_x = 680
                 self.attackA_cur+=1
                 self.cur_frame = 0
+                self.game.B_player.cur_frame = 0
                 self.game.B_player.state_duck = True
                 self.frame_delay = 100
         elif self.attackA_cur == 1:
             if self.cur_frame == 7:
                 self.attackA_cur+=1
                 self.cur_frame = 0
-                self.frame_delay = 500
+                self.frame_delay = 700
+                self.game.B_player.cur_frame = 0
                 self.game.B_player.state_duck = False
-                self.game.B_player.state_idle = True
-                #self.game.B_player.state_counterattack = True
+                #self.game.B_player.state_idle = True
+                self.game.B_player.state_counterattack = True
         elif self.attackA_cur == 2:
             # maybe add a small delay after the second swipe? to increase the impact
             if self.cur_frame == 1:
                 self.frame_delay = 100
-                print(len(self.cur_sprlist))
+                #print(len(self.cur_sprlist))
             elif self.cur_frame == 8:
                 self.frame_delay = 600
             elif self.cur_frame == 9:
                 self.frame_delay = 200
                 self.attackA_cur+=1 # this is why the delay doesn't work, it's because it switches to the next spritelist
                 self.cur_frame = 0
-                #self.game.B_player.state_counterattack = False
-                #self.game.B_player.state_idle = True
+                self.game.B_player.cur_frame = 0
+                self.game.B_player.state_counterattack = False
+                self.game.B_player.state_idle = True
                 
         elif self.attackA_cur == 3:
             #if self.cur_frame == 1:
