@@ -42,6 +42,7 @@ class MainGame():
         self.text_delay = 0
         self.battleloop_var = 1
         self.battleloop_phase_delay = 0
+        self.drinking_potion = False
 
         # in-game variables: health, stamina, special points, etc.
         self.player_health = 100
@@ -174,9 +175,11 @@ class MainGame():
         elif self.battleloop_var == 2:
             #print("phase 2")
             self.B_player.state_idle = False
-            self.menu.active_attack = True
+            if not self.drinking_potion:
+                self.menu.active_attack = True
         # Phase 3
         elif self.battleloop_var == 3:
+            #print("stage 3")
             self.B_player.state_idle = True
             self.B_player.state_lightattack = False
             self.B_player.state_heavyattack = False
@@ -232,47 +235,54 @@ class MainGame():
             else:
                 self.menu.combo_feedback(input_var, num_pos, True) # 1 successful hit
 
-    def tally(self, maxdmg_enemy, maxdmg_player):
+    def tally(self, maxdmg_enemy, maxdmg_player, target):
         ## first the function is going to check how many successful hits the player got
         # proportionally to the total length of the combo
         ## then the function is going to calculate the appropriate amount of damage, 
         # proportionally to the maximum possible damage (and convert it into an integer)
         # if the player got every single hit on time, blit an additional "Critical hit!" textbox and deal 1.5*damage
         ## and lastly the function will allocate an appropriate amount of damage to each character's health
-        success_hits = self.menu.hits
-        combo_length = len(self.menu.qt_event)
-        dmg_multiplier = 1
-        hit_ratio = success_hits/combo_length
-        if hit_ratio == 1: # perfect combo
-            dmg_multiplier = 1.5
-            if maxdmg_enemy != 0: # enemy dealt critical hit
-                self.animate_text("Critical hit!",3)
-            else: # player hit critical hit
-                self.animate_text("Critical hit!",2)
-            print("perfect combo!")
-        enemydmg_total = int(maxdmg_enemy*hit_ratio*dmg_multiplier)
-        self.player_health += enemydmg_total
-        if enemydmg_total != 0:
-            self.animate_text(enemydmg_total,0) # player takes damage
-        playerdmg_total = int(maxdmg_player*hit_ratio*dmg_multiplier)
-        self.enemy_health += playerdmg_total
-        if playerdmg_total != 0:
-            self.animate_text(playerdmg_total,1) # enemy takes damage
-        # check if any character has died
-        if self.player_health <= 0:
-            print("you died")
-        elif self.enemy_health <= 0:
-            print("you won!")
+        
+        success_hits = self.menu.hits # the amount of inputs the player hit correctly
+        combo_length = len(self.menu.qt_event) # the total amount of input in the combo
+        ## Targets: 1 = enemy, 2 = player, 3 = potion
+        if target == 1: # player deals damage to enemy
+            hit_ratio = success_hits/combo_length
+            dmg_multipler = 1
+            if hit_ratio == 1: # perfect combo, player hit every input
+                self.animate_text("Critical hit!", 2)
+                dmg_multipler = 1.5
+            dmg_total = int(maxdmg_player*hit_ratio*dmg_multipler)
+            self.enemy_health += dmg_total
+            self.animate_text(dmg_total, 1)
+        elif target == 2: #enemy deals damage to player
+            hit_ratio = success_hits/combo_length
+            if hit_ratio == 1: # perfect dodge, player avoided the full attack
+                self.animate_text("Perfect!", 3)
+            elif hit_ratio == 0: # critical miss, player failed every input
+                self.animate_text("Critical hit!", 3)
+            dmg_total = int(maxdmg_enemy*(1-hit_ratio))
+            self.player_health += dmg_total
+            self.animate_text(dmg_total, 0)
+        elif target == 3: # player drinks a potion
+            #print("potion drank")
+            self.animate_text(30, 4)
+            self.player_health += 30
+            if self.player_health > 100:
+                self.player_health = 100
+        
+        if self.enemy_health <= 0:
             self.game_battle_sprites.remove(self.B_enemy)
             self.enemy.alive = False
+            self.battleloop_var = 1 # resets the battle loop
+        elif self.player_health <= 0:
+            self.game_over()
 
     def animate_text(self, damage, text_type):
         ## text types: 0-player damaged, 1-enemy damaged, 2-critical hit player, 3-critical hit enemy, 4-potion
-        if damage == 0:
-            return
         self.text_delay = pygame.time.get_ticks()
         colour = (200,0,0)
-        if type(damage) == int and damage > 0:
+        if text_type == 4 > 0 or damage == "Perfect!":
             colour = (0,200,0)
 
         text = self.font.render(str(damage), True, colour)
@@ -300,11 +310,16 @@ class MainGame():
             # text only stays on screen for 1 second
             self.text_list.clear()
             self.battleloop_var += 1
+            self.drinking_potion = False
             if self.battleloop_var == 4:
                 self.menu.defend()
         for i in self.text_list:
             #text_coords = text[1]
             self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
+
+    def game_over(self):
+        print("game over")
+        pass
 
     def instakill_enemy(self):
         if len(self.game_battle_sprites) == 0:
@@ -1138,7 +1153,7 @@ class BattlePlayer(BattleNPC):
             elif self.state_duck:
                 self.duck()
             elif self.state_counterattack:
-                print("state check")
+                #print("state check")
                 self.counterattack()
             else:
                 self.cur_sprlist = self.frames_idle
@@ -1186,7 +1201,7 @@ class BattlePlayer(BattleNPC):
                 self.cur_frame = 0
                 self.lightattack_cur = 0
                 self.game.battleloop_var += 1
-                self.game.tally(0,-50)
+                self.game.tally(0,-50,1)
         self.image = self.cur_sprlist[self.cur_frame]
         
 
@@ -1229,7 +1244,7 @@ class BattlePlayer(BattleNPC):
                 self.cur_frame = 0
                 self.heavyattack_cur = 0
                 self.game.battleloop_var += 1
-                self.game.tally(0,-100)
+                self.game.tally(0,-100,1)
         self.image = self.cur_sprlist[self.cur_frame]
         
 
@@ -1247,19 +1262,19 @@ class BattlePlayer(BattleNPC):
         #self.image = self.frames_idle[self.cur_frame]
 
     def duck(self):
-        print("i duck!", len(self.frames_duck))
+        #print("i duck!", len(self.frames_duck))
         self.cur_sprlist = self.frames_duck
         if self.cur_frame == 1:
             self.frame_delay = 1500
         elif self.cur_frame == 2: # does not trigger atm due to the delay being too long
-            print("endseq check")
+            #print("endseq check")
             self.frame_delay = 200
             self.cur_frame = 0
             self.state_duck = False
             self.state_idle = True
         
     def counterattack(self):
-        print("i counterattack")
+        #print("i counterattack")
         self.cur_sprlist = self.frames_attackA
         if self.cur_frame == 0:
             self.frame_delay = 1800
@@ -1376,7 +1391,7 @@ class BattleSkeleton(BattleEnemy):
                 self.attackA_cur = 0
                 
                 self.game.battleloop_var += 1
-                self.game.tally(-20,0)
+                self.game.tally(-40,0,2)
         
 
 
@@ -1546,8 +1561,12 @@ class BattleMenu(pygame.sprite.Sprite):
         pass
 
     def items(self):
-        #self.game.tally(50,0)
+        self.hits = 0
+        self.qt_event = [4]
+        self.game.drinking_potion = True
+        self.game.tally(1,1,3)
         print("I picked items")
+        self.game.battleloop_var+=1
 
     def combo_feedback(self, button_val, button_pos, hit):
         # button_val is in integer that represents the value of the button
