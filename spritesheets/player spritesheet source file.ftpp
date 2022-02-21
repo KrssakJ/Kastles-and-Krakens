@@ -367,7 +367,7 @@
   ],
   "folders": [],
   "packOptions": {
-    "textureName": "knight_idle",
+    "textureName": "knight_battle",
     "textureFormat": "png",
     "removeFileExtension": false,
     "prependFolderName": true,

@@ -1732,7 +1732,7 @@
   "meta": {
     "app": "http://free-tex-packer.com",
     "version": "0.6.7",
-    "image": "knight_idle.png",
+    "image": "knight_battle.png",
     "format": "RGBA8888",
     "size": {
       "w": 501,

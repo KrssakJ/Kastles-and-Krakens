@@ -95,6 +95,26 @@
       "folder": ""
     },
     {
+      "name": "skeleton_death1.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Monsters_Creatures_Fantasy/Skeleton/Frames/skeleton_death1.png",
+      "folder": ""
+    },
+    {
+      "name": "skeleton_death2.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Monsters_Creatures_Fantasy/Skeleton/Frames/skeleton_death2.png",
+      "folder": ""
+    },
+    {
+      "name": "skeleton_death3.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Monsters_Creatures_Fantasy/Skeleton/Frames/skeleton_death3.png",
+      "folder": ""
+    },
+    {
+      "name": "skeleton_death4.png",
+      "path": "C:/Users/jozko.krssak/Desktop/Monsters_Creatures_Fantasy/Skeleton/Frames/skeleton_death4.png",
+      "folder": ""
+    },
+    {
       "name": "skeleton_idle1.png",
       "path": "C:/Users/jozko.krssak/Desktop/Monsters_Creatures_Fantasy/Skeleton/Frames/skeleton_idle1.png",
       "folder": ""
@@ -157,7 +177,7 @@
   ],
   "folders": [],
   "packOptions": {
-    "textureName": "skeleton_idle",
+    "textureName": "skeleton_battle",
     "textureFormat": "png",
     "removeFileExtension": false,
     "prependFolderName": true,

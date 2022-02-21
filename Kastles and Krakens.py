@@ -38,6 +38,7 @@ class MainGame():
         
         # battle text variables: font, text list, etc.
         self.font = pygame.font.SysFont("arial", 40)
+        self.bigger_font = pygame.font.SysFont("arial", 300)
         self.text_list = []
         self.text_delay = 0
         self.battleloop_var = 1
@@ -48,7 +49,6 @@ class MainGame():
         self.player_health = 100
         self.enemy_health = 100
         
-
         # player's current position in relation to the overworld, X and Y variables
         self.ow_posX = 2
         self.ow_posY = 1
@@ -190,14 +190,15 @@ class MainGame():
             self.draw_text()
         # Phase 4 WIP
         elif self.battleloop_var == 4:
+            #print("stage 4")
             self.B_player.state_idle = False
             #self.B_player.state_duck = True
             self.B_enemy.state_idle = False
             self.B_enemy.state_attackA = True
-            #self.menu.defend()
             self.menu.active_defend = True
         # Phase 5 WIP
         elif self.battleloop_var == 5:
+            #print("stage 5")
             if not self.B_player.state_death:
                 self.B_player.state_idle = True
             #self.B_player.state_duck = False
@@ -229,7 +230,6 @@ class MainGame():
                 self.menu.selection += 1
         elif self.menu.active_attack or self.menu.active_defend:
             self.menu.combo.append(input_var)
-            print(self.menu.combo)
             num_pos = len(self.menu.combo)-1
             if num_pos >= len(self.menu.qt_event): # the combo is over
                 return
@@ -268,16 +268,21 @@ class MainGame():
             self.player_health += dmg_total
             self.animate_text(dmg_total, 0)
         elif target == 3: # player drinks a potion
-            #print("potion drank")
             self.animate_text(30, 4)
             self.player_health += 30
             if self.player_health > 100:
                 self.player_health = 100
         
         if self.enemy_health <= 0:
-            self.game_battle_sprites.remove(self.B_enemy)
+            #print("you killed the enemy!")
+            self.animate_text("Victory!", 5)
+            self.B_enemy.state_idle = False
+            self.B_enemy.state_death = True
+            self.B_enemy.cur_frame = 0
+            
             self.enemy.alive = False
-            self.battleloop_var = 1 # resets the battle loop
+            
+            
         elif self.player_health <= 0:
             self.B_player.state_idle = False
             self.B_player.state_death = True
@@ -290,10 +295,11 @@ class MainGame():
         colour = (200,0,0)
         if text_type == 4 > 0 or damage == "Perfect!":
             colour = (0,200,0)
+        elif text_type == 5:
+            colour = (212,175,55)
 
         text = self.font.render(str(damage), True, colour)
-        
-        textwidth = text.get_size() # is this actually that important?
+        textsize = text.get_size() # is this actually that important?
 
         if text_type == 0 or text_type == 4: # player took damage or drank a potion
             text_coords = [210,535]
@@ -303,31 +309,35 @@ class MainGame():
             text_coords = [1000,400]
         elif text_type == 3: # enemy dealt a critical hit
             text_coords = [210,485]
+        elif text_type == 5: # battle victory text
+            print("victory text")
+            text_coords = [self.game_WIDTH//2-textsize[0]//2, self.game_HEIGHT//2-textsize[1]//2]
         else: # default text coordinates
             text_coords = [0,0]
-        textfile = Text(text, textwidth, text_coords)
+        textfile = Text(text, textsize, text_coords)
         self.text_list.append(textfile)
+        print(self.text_list)
 
     def draw_text(self):
-        # could move this into battle_loop
-        #print("drawing text")
         now = pygame.time.get_ticks()
-        if self.B_player.state_idle and now - self.text_delay > 1000:
+        if self.B_player.state_idle and now - self.text_delay > 1500:
             # text only stays on screen for 1 second
             self.text_list.clear()
             self.battleloop_var += 1
             self.drinking_potion = False
-            if self.battleloop_var == 4:
+            if self.B_enemy.state_death:
+                self.game_battle_sprites.remove(self.B_enemy)
+                self.battleloop_var = 1
+            elif self.battleloop_var == 4: # not in battle_loop because it is one time, not recurring
                 self.menu.defend()
+            
         for i in self.text_list:
-            #text_coords = text[1]
             self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
 
     def game_over(self):
-        self.font = pygame.font.SysFont("arial", 300)
-        text1 = self.font.render("GAME", True, (200,0,0))
+        text1 = self.bigger_font.render("GAME", True, (200,0,0))
         text1_width = text1.get_width()
-        text2 = self.font.render("OVER", True, (200,0,0))
+        text2 = self.bigger_font.render("OVER", True, (200,0,0))
         text2_width = text2.get_width()
         self.main_screen.blit(text1, (self.game_WIDTH//2-text1_width//2, 150))
         self.main_screen.blit(text2, (self.game_WIDTH//2-text2_width//2, 450))
@@ -337,13 +347,13 @@ class MainGame():
             return
         self.game_battle_sprites.remove(self.B_enemy)
         self.enemy.alive = False
+        self.battleloop_var = 1
 
     def load_battle_sprites(self):
         self.B_player = BattlePlayer(self, 100, 800)
         self.game_battle_sprites.add(self.B_player)
         self.menu = BattleMenu(self, self.player_health)
         self.game_battle_sprites.add(self.menu)
-        
 
         if self.enemy.sourcefile == "red_enemy_sprites.png":
             self.B_enemy = BattleGoblin(self, 1000, 650)
@@ -367,16 +377,13 @@ class MainGame():
             elif enemy[3] == "charger":
                 enemy = Charger(self, enemy[2], enemy[0], enemy[1], enemy[4], 8, enemy[5], enemy[6])
             self.game_sprites.add(enemy)
-        #print(self.game_sprites)
         
     # Source: Christian Duenas - Pygame Framerate Independence
     # https://www.youtube.com/watch?v=XuyrHE6GIsc
     def get_dt(self):
-        # so far relatively unnecessary, likely to be removed in the future
         now = t.time()
         self.dt = now - self.prev_time
         self.prev_time = now
-        #print(self.dt)
         
     def game_loop(self):
         while self.running:
@@ -391,24 +398,16 @@ class MainGame():
                 self.game_sprites.draw(self.main_screen)
             else:
                 self.check_for_battle()
-                
                 self.main_screen.blit(self.cur_battle_bg, (0,0))
                 self.game_battle_sprites.update()
                 self.game_battle_sprites.draw(self.main_screen)
                 self.battle_loop()
-                #self.draw_text()
-            #print(self.roaming)
-            
-            
-            #self.battle_sprites.draw(self.main_screen)
-            #### IF overworld: x, elif battlephase: Y
 
             pygame.display.flip()
 
     def check_for_battle(self):
         # could potentially move this to battle_loop
-        if len(self.game_battle_sprites) <= 2:
-            #print("aight we're done")
+        if len(self.game_battle_sprites) <= 2 and len(self.text_list) == 0:
             self.game_battle_sprites.empty()
             self.roaming = True
 
@@ -1057,7 +1056,7 @@ class BattleNPC(pygame.sprite.Sprite):
            
 
     def load_frames(self):
-        spritesheet = Spritesheet(self.sourcefile+"_idle.png")
+        spritesheet = Spritesheet(self.sourcefile+"_battle.png")
         spritelist = list(spritesheet.data["frames"])
         #print(spritelist)
         self.frames_idle = []
@@ -1091,6 +1090,7 @@ class BattleNPC(pygame.sprite.Sprite):
                         framelist.append(parsed_frame)
                         counting_var+=1
             suffvar+=1
+        #print(self.sourcefile, frames)
         frames.clear()
         self.cur_frame = 0
         self.image = self.frames_idle[self.cur_frame]
@@ -1131,6 +1131,7 @@ class BattleNPC(pygame.sprite.Sprite):
         self.size = self.base_sprite.get_size()
         
     def death(self):
+        #print("i died")
         self.cur_sprlist = self.frames_death
         self.frame_delay = 500
         
@@ -1165,31 +1166,13 @@ class BattlePlayer(BattleNPC):
         elif self.state_duck:
             self.duck()
         elif self.state_counterattack:
-            #print("state check")
             self.counterattack()
         else:
-            print("idle check")
             self.cur_sprlist = self.frames_idle
-
-        # self.state_idle = True
-        # if self.state_idle == False: check if the player is attacking or being attacked
-
-    def anim_action(self, framelist, sequence_var):
-        # i know that it'd be nice to streamline animations, but is this actually necessary?
-        # like you can't use movement functions with this because they're too complicated
-        # you can use attack functions with this but it's like 3 lines of code, who gives a shit 
-        len_var = len(framelist)
-        if self.cur_frame == len_var-1:
-            sequence_var += 1
-            self.cur_frame = 0
-        
-        pass
-
 
     def light_attack(self):
         #this is the light attack animation
         #player moves to the enemy, swipes and moves back
-        #print("I used my light attack!")
         self.cur_sprlist = self.lightattack_states[self.lightattack_cur]
         if self.lightattack_cur == 0: # this part looks kind of choppy, maybe consider adding self.posx from skeleton
             if self.rect.x <= 750:
@@ -1256,21 +1239,8 @@ class BattlePlayer(BattleNPC):
                 self.cur_frame = 0
                 self.heavyattack_cur = 0
                 self.game.battleloop_var += 1
-                self.game.tally(0,-100,1)
+                self.game.tally(0,-150,1)
         
-
-    def defend(self):
-        #this is the defend animation
-        #2 variations based on enemy type: either a simple ducking motion, or a parry+riposte
-        pass
-        #print("I'm defending!")
-        #self.state_idle = False
-        #self.cur_frame = 0
-        #if self.state_duck:
-        #    self.cur_sprlist = self.frames_duck
-        #else:
-        #    self.cur_sprlist = self.frames_roll
-        #self.image = self.frames_idle[self.cur_frame]
 
     def duck(self):
         #print("i duck!", len(self.frames_duck))
@@ -1306,6 +1276,7 @@ class BattleEnemy(BattleNPC):
         self.state_attackA = False
         self.state_attackB = False
         self.pos_x = self.anch_x
+        
 
 
     def calibrate_x(self):
@@ -1315,13 +1286,14 @@ class BattleEnemy(BattleNPC):
 
 
     def set_state(self):
-        if self.state_idle:
-            self.cur_sprlist = self.frames_idle
+        if self.state_death:
+            self.death()
+        elif self.state_attackA:
+            self.attackA()
+        elif self.state_attackB:
+            self.attackB()
         else:
-            if self.state_attackA:
-                self.attackA()
-            elif self.state_attackB:
-                self.attackB()
+            self.cur_sprlist = self.frames_idle
 
     def attackA(self):
         pass
@@ -1352,6 +1324,8 @@ class BattleSkeleton(BattleEnemy):
 
         self.attackA_states = [self.frames_move_left, self.frames_attackA, self.frames_attackB, self.frames_move_right]
         self.attackA_cur = 0
+
+        #print("death length check", len(self.frames_death))
 
     def attackA(self):
         self.cur_sprlist = self.attackA_states[self.attackA_cur]
@@ -1402,7 +1376,7 @@ class BattleSkeleton(BattleEnemy):
                 self.attackA_cur = 0
                 
                 self.game.battleloop_var += 1
-                self.game.tally(-900,0,2)
+                self.game.tally(-40,0,2)
         
 
 
@@ -1566,10 +1540,6 @@ class BattleMenu(pygame.sprite.Sprite):
         self.qt_event = [1,1,2,3,2,1]
         self.create_qtbuttons(self.qt_event)
         ## There is no one defend state, there's a roll/duck animation
-        #self.game.B_player.state_defend = True
-        
-        
-        pass
 
     def items(self):
         self.hits = 0
