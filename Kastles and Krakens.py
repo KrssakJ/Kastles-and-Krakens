@@ -166,6 +166,9 @@ class MainGame():
 
         ## since battle_loop() triggers every frame, integer/time-sensitive variables should be handled by individual classes to prevent a softlock
 
+        if self.B_player.state_death:
+            self.game_over()
+            
         # Phase 1
         if self.battleloop_var == 1:
             #print("phase 1")
@@ -195,7 +198,8 @@ class MainGame():
             self.menu.active_defend = True
         # Phase 5 WIP
         elif self.battleloop_var == 5:
-            self.B_player.state_idle = True
+            if not self.B_player.state_death:
+                self.B_player.state_idle = True
             #self.B_player.state_duck = False
             self.B_enemy.state_idle = True
             self.B_enemy.state_attackA = False
@@ -203,7 +207,6 @@ class MainGame():
             self.draw_text()
         else:
             self.battleloop_var = 1
-        pass
 
     def do_menu_thing(self):
         if self.battleloop_var == 1:
@@ -276,6 +279,9 @@ class MainGame():
             self.enemy.alive = False
             self.battleloop_var = 1 # resets the battle loop
         elif self.player_health <= 0:
+            self.B_player.state_idle = False
+            self.B_player.state_death = True
+            self.B_player.cur_frame = 0
             self.game_over()
 
     def animate_text(self, damage, text_type):
@@ -318,8 +324,13 @@ class MainGame():
             self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
 
     def game_over(self):
-        print("game over")
-        pass
+        self.font = pygame.font.SysFont("arial", 300)
+        text1 = self.font.render("GAME", True, (200,0,0))
+        text1_width = text1.get_width()
+        text2 = self.font.render("OVER", True, (200,0,0))
+        text2_width = text2.get_width()
+        self.main_screen.blit(text1, (self.game_WIDTH//2-text1_width//2, 150))
+        self.main_screen.blit(text2, (self.game_WIDTH//2-text2_width//2, 450))
 
     def instakill_enemy(self):
         if len(self.game_battle_sprites) == 0:
@@ -1042,7 +1053,7 @@ class BattleNPC(pygame.sprite.Sprite):
         self.delay_var = 0
         self.size_coef = 6
         self.frame_delay = 200
-
+        self.state_death = False
            
 
     def load_frames(self):
@@ -1080,7 +1091,6 @@ class BattleNPC(pygame.sprite.Sprite):
                         framelist.append(parsed_frame)
                         counting_var+=1
             suffvar+=1
-        #print(frames)
         frames.clear()
         self.cur_frame = 0
         self.image = self.frames_idle[self.cur_frame]
@@ -1097,14 +1107,11 @@ class BattleNPC(pygame.sprite.Sprite):
         self.bigger_sprite = pygame.transform.scale(self.base_sprite, (self.size[0]*self.size_coef, self.size[1]*self.size_coef))
         self.calibrate_x()
         self.rect.y = self.anch_y - self.size[1]*self.size_coef # sets a stable ground level by changing the sprite's Y coordinate based on its height
-        self.flip_sprite()
+        
         
         self.image = self.bigger_sprite
         
     def calibrate_x(self):
-        pass
-
-    def flip_sprite(self):
         pass
 
     def set_state(self):
@@ -1115,12 +1122,17 @@ class BattleNPC(pygame.sprite.Sprite):
             #print(self.sourcefile, "i think i'm idle!")
             self.cur_sprlist = self.frames_idle
         now = pygame.time.get_ticks()
-        if now - self.animation_time > self.frame_delay:
+        if now - self.animation_time > self.frame_delay and not (self.state_death and self.cur_frame == len(self.frames_death)-1):
+            # The second part of the if statement is to make sure that the death animation only plays once
             self.animation_time = now
             self.cur_frame = (self.cur_frame + 1) % len(self.cur_sprlist)
             #print(self.sourcefile, self.cur_frame)
         self.base_sprite = self.cur_sprlist[self.cur_frame]
         self.size = self.base_sprite.get_size()
+        
+    def death(self):
+        self.cur_sprlist = self.frames_death
+        self.frame_delay = 500
         
 
 class BattlePlayer(BattleNPC):
@@ -1141,22 +1153,23 @@ class BattlePlayer(BattleNPC):
 
         self.state_duck = False
         self.state_counterattack = False
+        
 
     def set_state(self):
-        if self.state_idle:
-            self.cur_sprlist = self.frames_idle
+        if self.state_death:
+            self.death()
+        elif self.state_lightattack:
+            self.light_attack()
+        elif self.state_heavyattack:
+            self.heavy_attack()
+        elif self.state_duck:
+            self.duck()
+        elif self.state_counterattack:
+            #print("state check")
+            self.counterattack()
         else:
-            if self.state_lightattack:
-                self.light_attack()
-            elif self.state_heavyattack:
-                self.heavy_attack()
-            elif self.state_duck:
-                self.duck()
-            elif self.state_counterattack:
-                #print("state check")
-                self.counterattack()
-            else:
-                self.cur_sprlist = self.frames_idle
+            print("idle check")
+            self.cur_sprlist = self.frames_idle
 
         # self.state_idle = True
         # if self.state_idle == False: check if the player is attacking or being attacked
@@ -1202,7 +1215,6 @@ class BattlePlayer(BattleNPC):
                 self.lightattack_cur = 0
                 self.game.battleloop_var += 1
                 self.game.tally(0,-50,1)
-        self.image = self.cur_sprlist[self.cur_frame]
         
 
     def heavy_attack(self):
@@ -1245,7 +1257,6 @@ class BattlePlayer(BattleNPC):
                 self.heavyattack_cur = 0
                 self.game.battleloop_var += 1
                 self.game.tally(0,-100,1)
-        self.image = self.cur_sprlist[self.cur_frame]
         
 
     def defend(self):
@@ -1285,6 +1296,7 @@ class BattlePlayer(BattleNPC):
             self.state_counterattack = False
             self.state_idle = True
 
+    
 
 class BattleEnemy(BattleNPC):
     def __init__(self, game, anch_x, anch_y):
@@ -1343,7 +1355,6 @@ class BattleSkeleton(BattleEnemy):
 
     def attackA(self):
         self.cur_sprlist = self.attackA_states[self.attackA_cur]
-        self.image = self.cur_sprlist[self.cur_frame]
         if self.attackA_cur == 0:
             if self.pos_x >= 680:
                 # this could be higher, 600 is pretty good
@@ -1391,7 +1402,7 @@ class BattleSkeleton(BattleEnemy):
                 self.attackA_cur = 0
                 
                 self.game.battleloop_var += 1
-                self.game.tally(-40,0,2)
+                self.game.tally(-900,0,2)
         
 
 
