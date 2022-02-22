@@ -356,7 +356,7 @@ class MainGame():
         self.game_battle_sprites.add(self.menu)
 
         if self.enemy.sourcefile == "red_enemy_sprites.png":
-            self.B_enemy = BattleGoblin(self, 1000, 650)
+            self.B_enemy = BattleGoblin(self, 1000, 800)
         elif self.enemy.sourcefile == "blue_enemy_sprites.png":
             self.B_enemy = BattleSkeleton(self, 1240, 800)
         elif self.enemy.sourcefile == "fireworm_sprites.png":
@@ -1154,7 +1154,7 @@ class BattlePlayer(BattleNPC):
 
         self.state_duck = False
         self.state_counterattack = False
-        
+        self.state_roll = False
 
     def set_state(self):
         if self.state_death:
@@ -1163,10 +1163,13 @@ class BattlePlayer(BattleNPC):
             self.light_attack()
         elif self.state_heavyattack:
             self.heavy_attack()
+        elif self.state_roll:
+            self.roll()
         elif self.state_duck:
             self.duck()
         elif self.state_counterattack:
             self.counterattack()
+        
         else:
             self.cur_sprlist = self.frames_idle
 
@@ -1266,6 +1269,15 @@ class BattlePlayer(BattleNPC):
             self.state_counterattack = False
             self.state_idle = True
 
+    def roll(self):
+        self.cur_sprlist = self.frames_roll
+        if self.cur_frame == 0:
+            self.frame_delay = 125
+        elif self.cur_frame == 11:
+            self.cur_frame = 0
+            self.frame_delay = 200
+            self.state_roll = False
+            self.state_idle = True
     
 
 class BattleEnemy(BattleNPC):
@@ -1312,6 +1324,59 @@ class BattleGoblin(BattleEnemy):
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
         
+        self.attackA_states = [self.frames_move_left, self.frames_attackA, self.frames_attackB, self.frames_move_right]
+        self.attackA_cur = 0
+
+    def attackA(self):
+        self.cur_sprlist = self.attackA_states[self.attackA_cur]
+        if self.attackA_cur == 0:
+            if self.pos_x >= 500:
+                self.pos_x -= 5
+            else:
+                self.pos_x = 500
+                self.attackA_cur+=1
+                self.cur_frame = 0
+                self.frame_delay = 50
+                # maybe include trigger for player defend animations
+                self.game.B_player.cur_frame = 0
+                self.game.B_player.state_duck = True
+        elif self.attackA_cur == 1:
+            #self.frame_delay = 800
+            print(self.cur_frame, self.rect.x, self.size[0]*self.size_coef)
+            #if self.cur_frame == 5:
+                #self.pos_x = 600
+            if self.cur_frame == 8:
+                self.pos_x = 500
+                self.attackA_cur+=1
+                self.cur_frame = 0
+                self.frame_delay = 500
+                # potential defend triggers
+                self.game.B_player.cur_frame = 0
+                self.game.B_player.state_duck = False
+                self.game.B_player.state_roll = True
+        elif self.attackA_cur == 2:
+            if self.cur_frame == 1:
+                self.frame_delay = 100
+            elif self.cur_frame == 8:
+                self.frame_delay = 400
+            elif self.cur_frame == 9:
+                self.frame_delay = 200
+                self.attackA_cur+=1
+                self.cur_frame = 0
+                # potential defend triggers
+                self.game.B_player.cur_frame = 0
+        elif self.attackA_cur == 3:
+            if self.pos_x <= self.anch_x:
+                self.pos_x += 5
+            else:
+                self.pos_x = self.anch_x
+                self.cur_frame = 0
+                self.attackA_cur = 0
+
+                self.game.battleloop_var += 1
+                self.game.tally(-1,0,2)
+        
+
 
 class BattleSkeleton(BattleEnemy):
     def __init__(self, game, anch_x, anch_y):
