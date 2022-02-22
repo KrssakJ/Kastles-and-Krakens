@@ -1480,7 +1480,7 @@ class BattleWorm(BattleEnemy):
         self.attackA_cur = 0
 
     def attackA(self):
-        print(self.cur_frame)
+        #print(self.cur_frame)
         self.cur_sprlist = self.attackA_states[self.attackA_cur]
         #self.frame_delay = 250
         if self.cur_frame == 8:
@@ -1492,7 +1492,7 @@ class BattleWorm(BattleEnemy):
             self.cur_frame = 0
             self.attackA_cur = 0
             self.game.battleloop_var+=1
-            self.game.tally(-35,0,2)
+            self.game.tally(-50,0,2)
 
     def death(self):
         super().death()
