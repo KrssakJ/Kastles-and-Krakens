@@ -210,6 +210,9 @@ class MainGame():
             self.battleloop_var = 1
 
     def do_menu_thing(self):
+        if self.roaming:
+            return
+
         if self.battleloop_var == 1:
             self.battleloop_var += 1
             print(self.battleloop_var)
@@ -245,7 +248,7 @@ class MainGame():
         # proportionally to the maximum possible damage (and convert it into an integer)
         # if the player got every single hit on time, blit an additional "Critical hit!" textbox and deal 1.5*damage
         ## and lastly the function will allocate an appropriate amount of damage to each character's health
-        
+        #self.B_enemy.cur_frame = 0
         success_hits = self.menu.hits # the amount of inputs the player hit correctly
         combo_length = len(self.menu.qt_event) # the total amount of input in the combo
         ## Targets: 1 = enemy, 2 = player, 3 = potion
@@ -310,13 +313,13 @@ class MainGame():
         elif text_type == 3: # enemy dealt a critical hit
             text_coords = [210,485]
         elif text_type == 5: # battle victory text
-            print("victory text")
+            #print("victory text")
             text_coords = [self.game_WIDTH//2-textsize[0]//2, self.game_HEIGHT//2-textsize[1]//2]
         else: # default text coordinates
             text_coords = [0,0]
         textfile = Text(text, textsize, text_coords)
         self.text_list.append(textfile)
-        print(self.text_list)
+        #print(self.text_list)
 
     def draw_text(self):
         now = pygame.time.get_ticks()
@@ -330,6 +333,8 @@ class MainGame():
                 self.battleloop_var = 1
             elif self.battleloop_var == 4: # not in battle_loop because it is one time, not recurring
                 self.menu.defend()
+                self.B_player.cur_frame = 0
+                self.B_enemy.cur_frame = 0
             
         for i in self.text_list:
             self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
@@ -360,10 +365,13 @@ class MainGame():
         elif self.enemy.sourcefile == "blue_enemy_sprites.png":
             self.B_enemy = BattleSkeleton(self, 1240, 800)
         elif self.enemy.sourcefile == "fireworm_sprites.png":
-            self.B_enemy = BattleWorm(self,1000, 650)
+            self.B_enemy = BattleWorm(self,1200, 800)
         else:
-            self.B_enemy = BattleGoblin(self, 1000, 650)
+            self.B_enemy = BattleGoblin(self, 1000, 800)
         self.game_battle_sprites.add(self.B_enemy)
+
+        self.fireball = BattleFireball(self, -200, 650)
+        self.game_battle_sprites.add(self.fireball)
 
     def load_sprites(self):
         self.game_sprites = pygame.sprite.Group()
@@ -407,7 +415,7 @@ class MainGame():
 
     def check_for_battle(self):
         # could potentially move this to battle_loop
-        if len(self.game_battle_sprites) <= 2 and len(self.text_list) == 0:
+        if self.B_enemy not in self.game_battle_sprites and len(self.text_list) == 0:
             self.game_battle_sprites.empty()
             self.roaming = True
 
@@ -1155,8 +1163,13 @@ class BattlePlayer(BattleNPC):
         self.state_duck = False
         self.state_counterattack = False
         self.state_roll = False
+        #self.statechange = False # could be a way of adding onetime functions to the code? right now it's just cur_frame=0 with extra steps
 
     def set_state(self):
+        #if self.statechange:
+            #self.cur_frame = 0
+            #self.statechange = not self.statechange
+
         if self.state_death:
             self.death()
         elif self.state_lightattack:
@@ -1248,6 +1261,9 @@ class BattlePlayer(BattleNPC):
     def duck(self):
         #print("i duck!", len(self.frames_duck))
         self.cur_sprlist = self.frames_duck
+        if self.cur_frame >= len(self.cur_sprlist): # this is here to prevent outofrange errors when called by other functions
+            self.cur_frame = 0
+
         if self.cur_frame == 1:
             self.frame_delay = 1500
         elif self.cur_frame == 2: # does not trigger atm due to the delay being too long
@@ -1260,6 +1276,9 @@ class BattlePlayer(BattleNPC):
     def counterattack(self):
         #print("i counterattack")
         self.cur_sprlist = self.frames_attackA
+        if self.cur_frame >= len(self.cur_sprlist): # this is here to prevent outofrange errors when called by other functions
+            self.cur_frame = 0
+
         if self.cur_frame == 0:
             self.frame_delay = 1800
         elif self.cur_frame == 1:
@@ -1271,6 +1290,9 @@ class BattlePlayer(BattleNPC):
 
     def roll(self):
         self.cur_sprlist = self.frames_roll
+        if self.cur_frame >= len(self.cur_sprlist): # this is here to prevent outofrange errors when called by other functions
+            self.cur_frame = 0
+
         if self.cur_frame == 0:
             self.frame_delay = 125
         elif self.cur_frame == 11:
@@ -1342,7 +1364,7 @@ class BattleGoblin(BattleEnemy):
                 self.game.B_player.state_duck = True
         elif self.attackA_cur == 1:
             #self.frame_delay = 800
-            print(self.cur_frame, self.rect.x, self.size[0]*self.size_coef)
+            #print(self.cur_frame, self.rect.x, self.size[0]*self.size_coef)
             #if self.cur_frame == 5:
                 #self.pos_x = 600
             if self.cur_frame == 8:
@@ -1374,7 +1396,7 @@ class BattleGoblin(BattleEnemy):
                 self.attackA_cur = 0
 
                 self.game.battleloop_var += 1
-                self.game.tally(-1,0,2)
+                self.game.tally(-40,0,2)
         
 
 
@@ -1449,10 +1471,50 @@ class BattleWorm(BattleEnemy):
     def __init__(self, game, anch_x, anch_y):
         super().__init__(game, anch_x, anch_y)
         self.sourcefile = "fireworm"
-        self.size_coef = 6
+        self.size_coef = 8
         self.game.enemy_health = 250
         self.load_frames()
         self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
+
+        self.attackA_states = [self.frames_attackA]
+        self.attackA_cur = 0
+
+    def attackA(self):
+        print(self.cur_frame)
+        self.cur_sprlist = self.attackA_states[self.attackA_cur]
+        #self.frame_delay = 250
+        if self.cur_frame == 8:
+            self.game.B_player.state_duck = True
+        elif self.cur_frame == 10:
+            self.game.fireball.rect.x = 800
+            #self.game.B_player.frame_delay = 3000
+        elif self.cur_frame == 15:
+            self.cur_frame = 0
+            self.attackA_cur = 0
+            self.game.battleloop_var+=1
+            self.game.tally(-35,0,2)
+
+    def death(self):
+        super().death()
+        self.frame_delay = 100
+
+class BattleFireball(BattleNPC):
+    def __init__(self, game, anch_x, anch_y):
+        super().__init__(game, anch_x, anch_y)
+        self.sourcefile = "fireball"
+        self.size_coef = 6
+        self.load_frames()
+        self.rect = self.image.get_rect(bottomleft = (anch_x, anch_y), width = self.size[0], height = self.size[1])
+
+    def set_state(self):
+        if self.rect.x <= -200:
+            #print("idle check")
+            return
+        else:
+            #print("firing check")
+            if self.rect.x >= -200:
+                self.rect.x -= 8
+
 
 class BattleMenu(pygame.sprite.Sprite):
     def __init__(self, game, player_health):
