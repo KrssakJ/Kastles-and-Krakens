@@ -1363,16 +1363,12 @@ class BattleGoblin(BattleEnemy):
                 self.game.B_player.cur_frame = 0
                 self.game.B_player.state_duck = True
         elif self.attackA_cur == 1:
-            #self.frame_delay = 800
-            #print(self.cur_frame, self.rect.x, self.size[0]*self.size_coef)
-            #if self.cur_frame == 5:
-                #self.pos_x = 600
             if self.cur_frame == 8:
                 self.pos_x = 500
                 self.attackA_cur+=1
                 self.cur_frame = 0
                 self.frame_delay = 500
-                # potential defend triggers
+                # defend triggers
                 self.game.B_player.cur_frame = 0
                 self.game.B_player.state_duck = False
                 self.game.B_player.state_roll = True
