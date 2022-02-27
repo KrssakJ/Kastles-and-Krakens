@@ -424,6 +424,12 @@ class MainGame():
             return
         self.game_sprites.empty()
         pygame.display.set_caption("Congratulations!")
+        text1 = self.bigger_font.render("Congratulations!", True, (200,0,0))
+        text1_width = text1.get_width()
+        text2 = self.bigger_font.render("You win!", True, (200,0,0))
+        text2_width = text2.get_width()
+        self.main_screen.blit(text1, (self.game_WIDTH//2-text1_width//2, 150))
+        self.main_screen.blit(text2, (self.game_WIDTH//2-text2_width//2, 450))
         
 class Text():
     def __init__(self, text, size, coords):
