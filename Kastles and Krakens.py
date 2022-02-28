@@ -38,7 +38,8 @@ class MainGame():
         
         # battle text variables: font, text list, etc.
         self.font = pygame.font.SysFont("arial", 40)
-        self.bigger_font = pygame.font.SysFont("arial", 300)
+        self.medium_font = pygame.font.SysFont("arial", 150)
+        self.big_font = pygame.font.SysFont("arial", 300)
         self.text_list = []
         self.text_delay = 0
         self.battleloop_var = 1
@@ -80,16 +81,6 @@ class MainGame():
                     self.do_menu_thing()
                 elif event.key == pygame.K_k:
                     self.attack(5)
-                elif event.key == pygame.K_b:
-                    self.B_player.state_idle = False
-                    self.B_player.state_lightattack = True
-                    self.B_player.cur_frame = 0
-                elif event.key == pygame.K_n:
-                    self.B_player.state_idle = False
-                    self.B_player.state_heavyattack = True
-                    self.B_player.cur_frame = 0
-                elif event.key == pygame.K_m:
-                    self.B_player.defend()
                     
                 elif event.key == pygame.K_p:
                     self.instakill_enemy()
@@ -340,9 +331,9 @@ class MainGame():
             self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
 
     def game_over(self):
-        text1 = self.bigger_font.render("GAME", True, (200,0,0))
+        text1 = self.big_font.render("GAME", True, (200,0,0))
         text1_width = text1.get_width()
-        text2 = self.bigger_font.render("OVER", True, (200,0,0))
+        text2 = self.big_font.render("OVER", True, (200,0,0))
         text2_width = text2.get_width()
         self.main_screen.blit(text1, (self.game_WIDTH//2-text1_width//2, 150))
         self.main_screen.blit(text2, (self.game_WIDTH//2-text2_width//2, 450))
@@ -400,8 +391,8 @@ class MainGame():
             self.get_events()
             self.change_pos()
             if self.roaming == True:
-                self.victory_banner()
                 self.main_screen.blit(self.cur_map_image, (0,0))
+                self.victory_banner()
                 self.game_sprites.update()
                 self.game_sprites.draw(self.main_screen)
             else:
@@ -424,9 +415,9 @@ class MainGame():
             return
         self.game_sprites.empty()
         pygame.display.set_caption("Congratulations!")
-        text1 = self.bigger_font.render("Congratulations!", True, (200,0,0))
+        text1 = self.medium_font.render("Congratulations!", True, (200,200,0))
         text1_width = text1.get_width()
-        text2 = self.bigger_font.render("You win!", True, (200,0,0))
+        text2 = self.medium_font.render("You win!", True, (200,200,0))
         text2_width = text2.get_width()
         self.main_screen.blit(text1, (self.game_WIDTH//2-text1_width//2, 150))
         self.main_screen.blit(text2, (self.game_WIDTH//2-text2_width//2, 450))
@@ -1482,14 +1473,11 @@ class BattleWorm(BattleEnemy):
         self.attackA_cur = 0
 
     def attackA(self):
-        #print(self.cur_frame)
         self.cur_sprlist = self.attackA_states[self.attackA_cur]
-        #self.frame_delay = 250
         if self.cur_frame == 8:
             self.game.B_player.state_duck = True
         elif self.cur_frame == 10:
             self.game.fireball.rect.x = 900
-            #self.game.B_player.frame_delay = 3000
         elif self.cur_frame == 15:
             self.cur_frame = 0
             self.attackA_cur = 0
@@ -1641,21 +1629,20 @@ class BattleMenu(pygame.sprite.Sprite):
         #self.active_attack = True
         self.hits = 0
         self.combo = []
-        self.qt_event = [3,0,3,4,5,1] # D W D J K A
-        #self.qt_event = []
-        #for i in range(6):
-        #    x = r.randint(0,5)
-        #    self.qt_event.append(x)
+        #self.qt_event = [3,0,3,4,5,1] # D W D J K A
+        self.qt_event = r.choice([[3,0,3,4,5,1], [3,1,2,3,5,5], [1,3,1,3,4,5]])
+        
         self.create_qtbuttons(self.qt_event)
         self.game.B_player.state_lightattack = True
         
-        print("I attack!")
+        #print("I attack!")
 
     def heavy_attack(self):
         #self.active_attack = True
         self.hits = 0
         self.combo = []
-        self.qt_event = [3,3,2,2,3,4,5,4,1] # ddssdjkja
+        #self.qt_event = [3,3,2,2,3,4,5,4,1] # ddssdjkja
+        self.qt_event = r.choice([[3,3,2,2,3,4,5,4,1], [3,0,1,3,2,3,4,5,5], [3,4,2,4,0,5,4,2,5]])
         self.create_qtbuttons(self.qt_event)
         self.game.B_player.state_heavyattack = True
         
@@ -1666,7 +1653,8 @@ class BattleMenu(pygame.sprite.Sprite):
         self.active_defend = True
         self.hits = 0
         self.combo = []
-        self.qt_event = [1,1,2,3,2,1]
+        #self.qt_event = [1,1,2,3,2,1]
+        self.qt_event = r.choice([[1,1,2,3,2,1], [1,2,1,4,4,2], [0,2,2,1,3,5]])
         self.create_qtbuttons(self.qt_event)
         ## There is no one defend state, there's a roll/duck animation
 
@@ -1675,21 +1663,18 @@ class BattleMenu(pygame.sprite.Sprite):
         self.qt_event = [4]
         self.game.drinking_potion = True
         self.game.tally(1,1,3)
-        print("I picked items")
         self.game.battleloop_var+=1
 
     def combo_feedback(self, button_val, button_pos, hit):
         # button_val is in integer that represents the value of the button
         # button_pos is an integer that represents the position of the button
         # hit is a bool that checks if the player successfully hit the button
-        ## this function will 
+        ## this function will check if the player 
         if hit:
             self.key_sprites[button_pos] = self.keys_correct[button_val]
             self.hits+=1
-            #print("nice")
         else:
             self.key_sprites[button_pos] = self.keys_failed[button_val]
-            #print("combo failed!")
         
         
 
