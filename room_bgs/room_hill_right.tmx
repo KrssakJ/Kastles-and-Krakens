@@ -123,19 +123,19 @@
   <object id="27" type="wall" x="1181" y="861" width="35" height="35"/>
  </objectgroup>
  <objectgroup id="4" name="Enemies">
-  <object id="4" name="red_enemy" type="enemy" x="438" y="726" width="48" height="48">
+  <object id="4" name="goblin" type="enemy" x="438" y="726" width="48" height="48">
    <properties>
-    <property name="enemy_sprite" value="red_enemy"/>
+    <property name="enemy_sprite" value="goblin"/>
     <property name="enemy_type" value="walker"/>
     <property name="movement_range" type="float" value="150"/>
     <property name="movement_speed" type="float" value="3"/>
    </properties>
   </object>
-  <object id="5" name="blue_enemy" type="enemy" x="890" y="197" width="48" height="48">
+  <object id="5" name="skeleton" type="enemy" x="890" y="197" width="48" height="48">
    <properties>
-    <property name="enemy_sprite" value="blue_enemy"/>
+    <property name="enemy_sprite" value="skeleton"/>
     <property name="enemy_type" value="walker"/>
-    <property name="hor_enemy" type="bool" value="true"/>
+    <property name="hor_enemy" type="bool" value="false"/>
     <property name="movement_range" type="float" value="150"/>
     <property name="movement_speed" type="float" value="2"/>
    </properties>

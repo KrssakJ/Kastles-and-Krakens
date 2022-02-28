@@ -106,7 +106,7 @@
     "padding": 0,
     "extrude": 0,
     "allowRotation": true,
-    "allowTrim": true,
+    "allowTrim": false,
     "trimMode": "trim",
     "alphaThreshold": "0",
     "detectIdentical": true,

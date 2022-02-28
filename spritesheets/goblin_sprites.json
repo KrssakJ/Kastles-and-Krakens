@@ -1,6 +1,6 @@
 {
   "frames": {
-    "skeleton_back1.png": {
+    "goblin_back1.png": {
       "frame": {
         "x": 0,
         "y": 0,
@@ -24,7 +24,7 @@
         "y": 0.5
       }
     },
-    "skeleton_back2.png": {
+    "goblin_back2.png": {
       "frame": {
         "x": 0,
         "y": 16,
@@ -48,7 +48,7 @@
         "y": 0.5
       }
     },
-    "skeleton_back3.png": {
+    "goblin_back3.png": {
       "frame": {
         "x": 0,
         "y": 32,
@@ -72,7 +72,7 @@
         "y": 0.5
       }
     },
-    "skeleton_back4.png": {
+    "goblin_back4.png": {
       "frame": {
         "x": 0,
         "y": 48,
@@ -96,7 +96,7 @@
         "y": 0.5
       }
     },
-    "skeleton_front1.png": {
+    "goblin_front1.png": {
       "frame": {
         "x": 0,
         "y": 64,
@@ -120,7 +120,7 @@
         "y": 0.5
       }
     },
-    "skeleton_front2.png": {
+    "goblin_front2.png": {
       "frame": {
         "x": 0,
         "y": 80,
@@ -144,7 +144,7 @@
         "y": 0.5
       }
     },
-    "skeleton_front3.png": {
+    "goblin_front3.png": {
       "frame": {
         "x": 0,
         "y": 96,
@@ -168,7 +168,7 @@
         "y": 0.5
       }
     },
-    "skeleton_front4.png": {
+    "goblin_front4.png": {
       "frame": {
         "x": 0,
         "y": 112,
@@ -192,7 +192,7 @@
         "y": 0.5
       }
     },
-    "skeleton_left1.png": {
+    "goblin_left1.png": {
       "frame": {
         "x": 0,
         "y": 128,
@@ -216,7 +216,7 @@
         "y": 0.5
       }
     },
-    "skeleton_left2.png": {
+    "goblin_left2.png": {
       "frame": {
         "x": 0,
         "y": 144,
@@ -240,7 +240,7 @@
         "y": 0.5
       }
     },
-    "skeleton_left3.png": {
+    "goblin_left3.png": {
       "frame": {
         "x": 0,
         "y": 160,
@@ -264,7 +264,7 @@
         "y": 0.5
       }
     },
-    "skeleton_left4.png": {
+    "goblin_left4.png": {
       "frame": {
         "x": 0,
         "y": 176,
@@ -288,7 +288,7 @@
         "y": 0.5
       }
     },
-    "skeleton_right1.png": {
+    "goblin_right1.png": {
       "frame": {
         "x": 0,
         "y": 192,
@@ -312,7 +312,7 @@
         "y": 0.5
       }
     },
-    "skeleton_right2.png": {
+    "goblin_right2.png": {
       "frame": {
         "x": 0,
         "y": 208,
@@ -336,7 +336,7 @@
         "y": 0.5
       }
     },
-    "skeleton_right3.png": {
+    "goblin_right3.png": {
       "frame": {
         "x": 0,
         "y": 224,
@@ -360,7 +360,7 @@
         "y": 0.5
       }
     },
-    "skeleton_right4.png": {
+    "goblin_right4.png": {
       "frame": {
         "x": 0,
         "y": 240,
@@ -388,7 +388,7 @@
   "meta": {
     "app": "http://free-tex-packer.com",
     "version": "0.6.7",
-    "image": "skeleton_sprites.png",
+    "image": "goblin_sprites.png",
     "format": "RGBA8888",
     "size": {
       "w": 16,

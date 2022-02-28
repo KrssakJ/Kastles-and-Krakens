@@ -86,7 +86,7 @@
  <objectgroup id="4" name="Enemies">
   <object id="33" name="ferdinand" type="enemy" x="188.915" y="167.676" width="48" height="48">
    <properties>
-    <property name="enemy_sprite" value="blue_enemy"/>
+    <property name="enemy_sprite" value="skeleton"/>
     <property name="enemy_type" value="walker"/>
     <property name="movement_range" type="float" value="150"/>
     <property name="movement_speed" type="float" value="0"/>
@@ -94,7 +94,7 @@
   </object>
   <object id="35" name="arnold" type="enemy" x="186.679" y="394.597" width="48" height="48">
    <properties>
-    <property name="enemy_sprite" value="red_enemy"/>
+    <property name="enemy_sprite" value="goblin"/>
     <property name="enemy_type" value="walker"/>
     <property name="movement_range" type="float" value="150"/>
     <property name="movement_speed" type="float" value="0"/>

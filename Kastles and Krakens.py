@@ -360,17 +360,17 @@ class MainGame():
         self.menu = BattleMenu(self, self.player_health)
         self.game_battle_sprites.add(self.menu)
 
-        if self.enemy.sourcefile == "red_enemy_sprites.png":
-            self.B_enemy = BattleGoblin(self, 1000, 800)
-        elif self.enemy.sourcefile == "blue_enemy_sprites.png":
+        if self.enemy.sourcefile == "goblin_sprites.png":
+            self.B_enemy = BattleGoblin(self, 1150, 800)
+        elif self.enemy.sourcefile == "skeleton_sprites.png":
             self.B_enemy = BattleSkeleton(self, 1240, 800)
         elif self.enemy.sourcefile == "fireworm_sprites.png":
-            self.B_enemy = BattleWorm(self,1200, 800)
+            self.B_enemy = BattleWorm(self,1300, 800)
         else:
             self.B_enemy = BattleGoblin(self, 1000, 800)
         self.game_battle_sprites.add(self.B_enemy)
 
-        self.fireball = BattleFireball(self, -200, 650)
+        self.fireball = BattleFireball(self, -200, 675)
         self.game_battle_sprites.add(self.fireball)
 
     def load_sprites(self):
@@ -1456,11 +1456,11 @@ class BattleSkeleton(BattleEnemy):
         elif self.attackA_cur == 3:
             #if self.cur_frame == 1:
                 #self.frame_delay = 200
-            if self.pos_x <= 1240:
+            if self.pos_x <= self.anch_x:
                 self.pos_x += 4
                 #print(self.rect.x)
             else:
-                self.pos_x = 1240
+                self.pos_x = self.anch_x
                 self.cur_frame = 0
                 self.attackA_cur = 0
                 
@@ -1488,7 +1488,7 @@ class BattleWorm(BattleEnemy):
         if self.cur_frame == 8:
             self.game.B_player.state_duck = True
         elif self.cur_frame == 10:
-            self.game.fireball.rect.x = 800
+            self.game.fireball.rect.x = 900
             #self.game.B_player.frame_delay = 3000
         elif self.cur_frame == 15:
             self.cur_frame = 0
