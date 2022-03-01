@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="8">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="10">
  <tileset firstgid="1" source="tilesets/!CL_DEMO_32x32.tsx"/>
  <layer id="1" name="Tile Layer 1" width="40" height="30">
   <data encoding="csv">
@@ -112,5 +112,22 @@
   <object id="6" type="wall" x="1184" y="672" width="96" height="192"/>
   <object id="7" type="wall" x="1216" y="640" width="64" height="32"/>
  </objectgroup>
- <objectgroup id="4" name="Enemies"/>
+ <objectgroup id="4" name="Enemies">
+  <object id="8" name="goblin" type="enemy" x="537.333" y="212" width="48" height="48">
+   <properties>
+    <property name="enemy_sprite" value="goblin"/>
+    <property name="enemy_type" value="walker"/>
+    <property name="movement_range" type="float" value="250"/>
+    <property name="movement_speed" type="float" value="3"/>
+   </properties>
+  </object>
+  <object id="9" name="goblin" type="enemy" x="598.667" y="681.333" width="48" height="48">
+   <properties>
+    <property name="enemy_sprite" value="goblin"/>
+    <property name="enemy_type" value="walker"/>
+    <property name="movement_range" type="float" value="250"/>
+    <property name="movement_speed" type="float" value="3"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

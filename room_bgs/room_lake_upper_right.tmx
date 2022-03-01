@@ -85,7 +85,7 @@
   <object id="17" name="Wall" type="wall" x="832" y="895.389" width="36.8887" height="61.4811"/>
  </objectgroup>
  <objectgroup id="2" name="Enemies">
-  <object id="1" name="randomworm" type="enemy" x="1017.83" y="436.71" width="64" height="64">
+  <object id="1" name="randomworm" type="enemy" x="900" y="436.71" width="64" height="64">
    <properties>
     <property name="enemy_sprite" value="fireworm"/>
     <property name="enemy_type" value="charger"/>

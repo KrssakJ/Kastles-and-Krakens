@@ -1675,35 +1675,6 @@ class BattleMenu(pygame.sprite.Sprite):
             self.hits+=1
         else:
             self.key_sprites[button_pos] = self.keys_failed[button_val]
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 g = MainGame()
 g.game_loop()

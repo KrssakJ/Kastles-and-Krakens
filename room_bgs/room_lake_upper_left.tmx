@@ -83,30 +83,5 @@
   <object id="39" name="Wall" type="wall" x="928.924" y="308.524" width="351.001" height="34.653"/>
   <object id="40" name="Wall" type="wall" x="803.726" y="367.769" width="70" height="280"/>
  </objectgroup>
- <objectgroup id="4" name="Enemies">
-  <object id="33" name="ferdinand" type="enemy" x="188.915" y="167.676" width="48" height="48">
-   <properties>
-    <property name="enemy_sprite" value="skeleton"/>
-    <property name="enemy_type" value="walker"/>
-    <property name="movement_range" type="float" value="150"/>
-    <property name="movement_speed" type="float" value="0"/>
-   </properties>
-  </object>
-  <object id="35" name="arnold" type="enemy" x="186.679" y="394.597" width="48" height="48">
-   <properties>
-    <property name="enemy_sprite" value="goblin"/>
-    <property name="enemy_type" value="walker"/>
-    <property name="movement_range" type="float" value="150"/>
-    <property name="movement_speed" type="float" value="0"/>
-   </properties>
-  </object>
-  <object id="37" name="vojtech" type="enemy" x="176.619" y="583.512" width="64" height="64">
-   <properties>
-    <property name="enemy_sprite" value="fireworm"/>
-    <property name="enemy_type" value="charger"/>
-    <property name="movement_range" type="float" value="150"/>
-    <property name="movement_speed" type="float" value="0"/>
-   </properties>
-  </object>
- </objectgroup>
+ <objectgroup id="4" name="Enemies"/>
 </map>

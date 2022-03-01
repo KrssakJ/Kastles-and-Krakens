@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="8">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="9" nextobjectid="14">
  <tileset firstgid="1" source="tilesets/!CL_DEMO_32x32.tsx"/>
  <layer id="1" name="Tile Layer 1" width="40" height="30">
   <data encoding="csv">
@@ -112,5 +112,32 @@
   <object id="6" type="wall" x="0" y="640" width="64" height="32"/>
   <object id="7" type="wall" x="1184" y="96" width="96" height="768"/>
  </objectgroup>
- <objectgroup id="5" name="Enemies"/>
+ <objectgroup id="5" name="Enemies">
+  <object id="11" name="skeleton" type="enemy" x="450" y="248" width="48" height="48">
+   <properties>
+    <property name="enemy_sprite" value="skeleton"/>
+    <property name="enemy_type" value="walker"/>
+    <property name="hor_enemy" type="bool" value="false"/>
+    <property name="movement_range" type="float" value="150"/>
+    <property name="movement_speed" type="float" value="2"/>
+   </properties>
+  </object>
+  <object id="12" name="Worm" type="enemy" x="974.667" y="460" width="64" height="64">
+   <properties>
+    <property name="enemy_sprite" value="fireworm"/>
+    <property name="enemy_type" value="charger"/>
+    <property name="hor_enemy" type="bool" value="true"/>
+    <property name="movement_range" type="float" value="450"/>
+    <property name="movement_speed" type="float" value="2"/>
+   </properties>
+  </object>
+  <object id="13" name="goblin" type="enemy" x="422.667" y="645.333" width="48" height="48">
+   <properties>
+    <property name="enemy_sprite" value="goblin"/>
+    <property name="enemy_type" value="walker"/>
+    <property name="movement_range" type="float" value="200"/>
+    <property name="movement_speed" type="float" value="3"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="17">
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="40" height="30" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="19">
  <tileset firstgid="1" source="tilesets/!CL_DEMO_32x32.tsx"/>
  <layer id="1" name="Tile Layer 1" width="40" height="30">
   <data encoding="csv">
@@ -112,6 +112,24 @@
   <object id="10" type="wall" x="1184" y="608" width="96" height="256"/>
   <object id="15" type="wall" x="1216" y="576" width="64" height="32"/>
   <object id="16" type="wall" x="1216" y="352" width="64" height="32"/>
+  <object id="17" name="skeleton" type="enemy" x="212" y="572" width="48" height="48">
+   <properties>
+    <property name="enemy_sprite" value="skeleton"/>
+    <property name="enemy_type" value="walker"/>
+    <property name="hor_enemy" type="bool" value="false"/>
+    <property name="movement_range" type="float" value="300"/>
+    <property name="movement_speed" type="float" value="2"/>
+   </properties>
+  </object>
+  <object id="18" name="skeleton" type="enemy" x="849.333" y="246.667" width="48" height="48">
+   <properties>
+    <property name="enemy_sprite" value="skeleton"/>
+    <property name="enemy_type" value="walker"/>
+    <property name="hor_enemy" type="bool" value="false"/>
+    <property name="movement_range" type="float" value="300"/>
+    <property name="movement_speed" type="float" value="2"/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup id="5" name="Enemies"/>
 </map>
