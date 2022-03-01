@@ -10,10 +10,11 @@ pygame.display.set_caption("Kastles and Krakens")
 
 class MainGame():
     def __init__(self):
-        self.load_variables()
-        self.load_rooms()
+        self.load_variables() # creates and loads all basic variables
+        self.load_rooms() # creates and loads all rooms into memory
 
     def load_variables(self):
+        # basic pygame variables
         self.running = True
         self.game_WIDTH = 1280
         self.game_HEIGHT = 960
@@ -21,20 +22,14 @@ class MainGame():
         self.clock = pygame.time.Clock()
         self.prev_time = t.time()
         
-        
-
+        # movement key variables
         self.key_w = False
         self.key_a = False
         self.key_s = False
         self.key_d = False
-        self.key_j = False
-        self.key_p = False
 
+        # initial player commit, prevents duplication of player sprite
         self.player = Player(self, "player", 624, 600, 0, 4)
-        self.battle_bg_file = pygame.image.load("battle_background.png")
-        self.cur_battle_bg = pygame.Surface((1280,960))
-        self.cur_battle_bg.blit(self.battle_bg_file,(0,0))
-        self.game_battle_sprites = pygame.sprite.Group()
         
         # battle text variables: font, text list, etc.
         self.font = pygame.font.SysFont("arial", 40)
@@ -42,6 +37,13 @@ class MainGame():
         self.big_font = pygame.font.SysFont("arial", 300)
         self.text_list = []
         self.text_delay = 0
+        self.battle_bg_file = pygame.image.load("battle_background.png")
+        self.cur_battle_bg = pygame.Surface((1280,960))
+        self.cur_battle_bg.blit(self.battle_bg_file,(0,0))
+        self.game_battle_sprites = pygame.sprite.Group()
+        
+
+        # other battle variables
         self.battleloop_var = 1
         self.battleloop_phase_delay = 0
         self.drinking_potion = False
@@ -56,10 +58,11 @@ class MainGame():
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
         self.prev_ow_pos = []
         
+        # switch between overworld phase and battle phase
         self.roaming = True
-        #self.game_state = self.states[0]
 
     def get_events(self):
+        #
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -82,9 +85,6 @@ class MainGame():
                 elif event.key == pygame.K_k:
                     self.attack(5)
                     
-                elif event.key == pygame.K_p:
-                    self.instakill_enemy()
-                
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
                     self.key_w = False
@@ -94,10 +94,6 @@ class MainGame():
                     self.key_s = False
                 elif event.key == pygame.K_d:
                     self.key_d = False
-                #elif event.key == pygame.K_j:
-                    #self.key_j = False
-                #elif event.key == pygame.K_p:
-                    #self.roaming = True
     
     def change_pos(self):
         # Checks if the player has gone into a different room
