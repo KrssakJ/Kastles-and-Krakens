@@ -62,9 +62,9 @@ class MainGame():
         self.roaming = True
 
     def get_events(self):
-        #
+        # basic pygame function, records unique events such as key/button presses, etc.
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT: # stops the program from running
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w:
@@ -81,10 +81,9 @@ class MainGame():
                     self.attack(3)
                 elif event.key == pygame.K_j:
                     self.attack(4)
-                    self.do_menu_thing()
+                    self.select_action_from_menu()
                 elif event.key == pygame.K_k:
                     self.attack(5)
-                    
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_w:
                     self.key_w = False
@@ -99,22 +98,23 @@ class MainGame():
         # Checks if the player has gone into a different room
         # If the player has moved between room, the function loads a new room from scratch
         self.cur_ow_pos = [self.ow_posX, self.ow_posY]
-        if self.cur_ow_pos == self.prev_ow_pos:
+        if self.cur_ow_pos == self.prev_ow_pos: # prevents the program from loading the same room over and over again
             return
-        #print(self.ow_posX, self.ow_posY)
+
         self.cur_room = self.world_data[self.ow_posY][self.ow_posX]
         self.cur_map_image = self.cur_room.map.load_map()
         self.cur_wall_list = self.cur_room.wall_list
-        self.load_sprites()
+        self.load_player_sprite()
         self.load_enemies(self.cur_room.enemy_list)
         self.prev_ow_pos = self.cur_ow_pos
 
     def load_rooms(self):
+        # loads every room in the game into the world_data list
+        # world_data is split into lists (rows), which contain Room objects
         self.load_mapfile()
         self.world_data = []
         self.room_dir = os.path.join("room_bgs")
         self.enemy_count = 0
-        #self.voidname = os.path.join(self.room_dir, "void.tmx")
         void = Room(self, "void")
 
         for f in self.mapdata:
@@ -126,18 +126,17 @@ class MainGame():
                 else:
                     roomdata = Room(self, r)
                     self.enemy_count += len(roomdata.enemy_list)
-                    #print(roomdata.enemy_list)
                     rowlist.append(roomdata)
             self.world_data.append(rowlist)
-        #print(self.world_data)
-        print("Enemies left:", self.enemy_count)
         
     def load_mapfile(self):
+        # loads the map file (.csv) that contains the layout of the map
         with open("maplist.csv") as r:
-            loaded = csv.reader(r)  # reads the file, returns idk a number?
-            self.mapdata = list(loaded)  # takes that number and turns it into a list (that we can work with)
+            loaded = csv.reader(r)  # reads the file, returns map data
+            self.mapdata = list(loaded)  # takes this data and turns it into a list (that we can work with)
 
     def trigger_battle_phase(self, enemy):
+        # triggered by overworld enemy objects as soon as they touch the player
         self.enemy = enemy
         self.roaming = not self.roaming
         self.load_battle_sprites()
@@ -153,42 +152,35 @@ class MainGame():
 
         ## since battle_loop() triggers every frame, integer/time-sensitive variables should be handled by individual classes to prevent a softlock
 
-        if self.B_player.state_death:
+        if self.B_player.state_death: # obvious death trigger is obvious
             self.game_over()
             
         # Phase 1
         if self.battleloop_var == 1:
-            #print("phase 1")
             self.B_player.state_idle = True
             self.B_enemy.state_idle = True
         # Phase 2
         elif self.battleloop_var == 2:
-            #print("phase 2")
             self.B_player.state_idle = False
             if not self.drinking_potion:
                 self.menu.active_attack = True
         # Phase 3
         elif self.battleloop_var == 3:
-            #print("stage 3")
             self.B_player.state_idle = True
             self.B_player.state_lightattack = False
             self.B_player.state_heavyattack = False
             self.menu.active_attack = False
             self.draw_text()
-        # Phase 4 WIP
+        # Phase 4 
         elif self.battleloop_var == 4:
-            #print("stage 4")
             self.B_player.state_idle = False
-            #self.B_player.state_duck = True
             self.B_enemy.state_idle = False
             self.B_enemy.state_attackA = True
             self.menu.active_defend = True
-        # Phase 5 WIP
+        # Phase 5 
         elif self.battleloop_var == 5:
-            #print("stage 5")
             if not self.B_player.state_death:
                 self.B_player.state_idle = True
-            #self.B_player.state_duck = False
             self.B_enemy.state_idle = True
             self.B_enemy.state_attackA = False
             self.menu.active_defend = False
@@ -196,10 +188,11 @@ class MainGame():
         else:
             self.battleloop_var = 1
 
-    def do_menu_thing(self):
+    def select_action_from_menu(self):
+        # using the Menu object and various IFs, this function triggers the Attack/Heavy Attack/Potion action during the battle phase
         if self.roaming:
             return
-
+        # passed = the player is in the battle phase
         if self.battleloop_var == 1:
             self.battleloop_var += 1
             print(self.battleloop_var)
@@ -213,10 +206,10 @@ class MainGame():
         if self.B_player.state_idle:
             # the player is in the menu, picking an attack
             if input_var == 1:
-                # player pressed A
+                # player pressed A, cursor moves left
                 self.menu.selection -= 1
             elif input_var == 3:
-                # player pressed D
+                # player pressed D, cursos moves right
                 self.menu.selection += 1
         elif self.menu.active_attack or self.menu.active_defend:
             self.menu.combo.append(input_var)
@@ -229,13 +222,10 @@ class MainGame():
                 self.menu.combo_feedback(input_var, num_pos, True) # 1 successful hit
 
     def tally(self, maxdmg_enemy, maxdmg_player, target):
-        ## first the function is going to check how many successful hits the player got
-        # proportionally to the total length of the combo
-        ## then the function is going to calculate the appropriate amount of damage, 
-        # proportionally to the maximum possible damage (and convert it into an integer)
+        ## first the function checks how many successful hits the player got proportionally to the total length of the combo
+        ## then the function calculates the appropriate amount of damage, proportionally to the maximum possible damage (and convert it into an integer)
         # if the player got every single hit on time, blit an additional "Critical hit!" textbox and deal 1.5*damage
-        ## and lastly the function will allocate an appropriate amount of damage to each character's health
-        #self.B_enemy.cur_frame = 0
+        ## and lastly the function allocates an appropriate amount of damage to each character's health
         success_hits = self.menu.hits # the amount of inputs the player hit correctly
         combo_length = len(self.menu.qt_event) # the total amount of input in the combo
         ## Targets: 1 = enemy, 2 = player, 3 = potion
@@ -263,8 +253,8 @@ class MainGame():
             if self.player_health > 100:
                 self.player_health = 100
         
-        if self.enemy_health <= 0:
-            #print("you killed the enemy!")
+        # these two statements check if either character has died during the fight
+        if self.enemy_health <= 0: # enemy died
             self.animate_text("Victory!", 5)
             self.B_enemy.state_idle = False
             self.B_enemy.state_death = True
@@ -272,15 +262,15 @@ class MainGame():
             
             self.enemy.alive = False
             
-            
-        elif self.player_health <= 0:
+        elif self.player_health <= 0: # player died
             self.B_player.state_idle = False
             self.B_player.state_death = True
             self.B_player.cur_frame = 0
             self.game_over()
 
     def animate_text(self, damage, text_type):
-        ## text types: 0-player damaged, 1-enemy damaged, 2-critical hit player, 3-critical hit enemy, 4-potion
+        # fill text_list to blit on the screen
+        # text types: 0-player damaged, 1-enemy damaged, 2-critical hit player, 3-critical hit enemy, 4-potion
         self.text_delay = pygame.time.get_ticks()
         colour = (200,0,0)
         if text_type == 4 > 0 or damage == "Perfect!":
@@ -289,7 +279,7 @@ class MainGame():
             colour = (212,175,55)
 
         text = self.font.render(str(damage), True, colour)
-        textsize = text.get_size() # is this actually that important?
+        textsize = text.get_size()
 
         if text_type == 0 or text_type == 4: # player took damage or drank a potion
             text_coords = [210,535]
@@ -300,13 +290,11 @@ class MainGame():
         elif text_type == 3: # enemy dealt a critical hit
             text_coords = [210,485]
         elif text_type == 5: # battle victory text
-            #print("victory text")
             text_coords = [self.game_WIDTH//2-textsize[0]//2, self.game_HEIGHT//2-textsize[1]//2]
         else: # default text coordinates
             text_coords = [0,0]
         textfile = Text(text, textsize, text_coords)
         self.text_list.append(textfile)
-        #print(self.text_list)
 
     def draw_text(self):
         now = pygame.time.get_ticks()
@@ -327,6 +315,7 @@ class MainGame():
             self.main_screen.blit(i.text, (i.coords[0],i.coords[1]))
 
     def game_over(self):
+        # simple game over screen
         text1 = self.big_font.render("GAME", True, (200,0,0))
         text1_width = text1.get_width()
         text2 = self.big_font.render("OVER", True, (200,0,0))
@@ -334,14 +323,9 @@ class MainGame():
         self.main_screen.blit(text1, (self.game_WIDTH//2-text1_width//2, 150))
         self.main_screen.blit(text2, (self.game_WIDTH//2-text2_width//2, 450))
 
-    def instakill_enemy(self):
-        if len(self.game_battle_sprites) == 0:
-            return
-        self.game_battle_sprites.remove(self.B_enemy)
-        self.enemy.alive = False
-        self.battleloop_var = 1
-
     def load_battle_sprites(self):
+        # loads battle sprites to the battle_sprites sprite group
+        # done at the start of every battle in order to prevent duplication
         self.B_player = BattlePlayer(self, 100, 800)
         self.game_battle_sprites.add(self.B_player)
         self.menu = BattleMenu(self, self.player_health)
@@ -360,7 +344,7 @@ class MainGame():
         self.fireball = BattleFireball(self, -200, 675)
         self.game_battle_sprites.add(self.fireball)
 
-    def load_sprites(self):
+    def load_player_sprite(self):
         self.game_sprites = pygame.sprite.Group()
         self.game_sprites.add(self.player)
 
@@ -381,6 +365,7 @@ class MainGame():
         self.prev_time = now
         
     def game_loop(self):
+        # basic game loop, this function causes the game to run in the first place
         while self.running:
             self.clock.tick(60)
             self.get_dt()
@@ -401,12 +386,13 @@ class MainGame():
             pygame.display.flip()
 
     def check_for_battle(self):
-        # could potentially move this to battle_loop
+        # self-explanatory, checks to see if the player is still in a fight
         if self.B_enemy not in self.game_battle_sprites and len(self.text_list) == 0:
             self.game_battle_sprites.empty()
             self.roaming = True
 
     def victory_banner(self):
+        # deletes every overworld sprites and displays a pleasant meassage
         if self.enemy_count != 0:
             return
         self.game_sprites.empty()
@@ -427,11 +413,7 @@ class Text():
 
 class Spritesheet():
     def __init__(self, filename):
-        ### TO DO:
-        # Currently only works if every sprite has their individual folder with their spritesheet
-        # May need to create a single, fixed folder that contains EVERY spritesheet in the game
         self.filename = filename
-        #print(self.filename)
         self.jsonfilename = self.filename.replace("png","json")
         self.sprite_dir = os.path.join("spritesheets")
         self.sprite_sheet = pygame.image.load(os.path.join(self.sprite_dir, self.filename)).convert()
@@ -474,7 +456,6 @@ class Room():
 # Source: KidsCanCode - Tile-based game part 12: Loading Tiled Maps
 # https://www.youtube.com/watch?v=QIXyj3WeyZM
 class TileMap():
-    # Pytmx podporuje nepozmenene spritesheets, lze pouzit puvodni upravenou mapu, zatez na CPU je vicemene stejna
     def __init__(self, mapfile):
         self.wall_list = []
         self.enemy_list = []
@@ -484,23 +465,18 @@ class TileMap():
         self.tmxdata = tm
     
     def render_objects(self):
-        #for layer in self.tmxdata.visible_layers:
-            #if isinstance(layer, pytmx.TiledObjectGroup):
-            # if there are multiple object layers, the program will go through every object multiple times
         for object in self.tmxdata.objects:
             # object properties: id (integer); name,type (strings); x,y,width,height (floats); object.properties (dictionary)
             # object.properties is a dictionary that displays pairs of data
             if object.type == "wall":
-                # The 32px offset is no longer necessary as the current rect is 48*48px (the previous rect was 16*16px)
                 temp_rect = pygame.Rect(object.x, object.y, object.width, object.height)
                 self.wall_list.append(temp_rect)
             if object.type == "enemy":
-                #print("I'm loading an enemy!")
                 enemy_data = [object.x, object.y, object.properties["enemy_sprite"], object.properties["enemy_type"], object.properties["movement_range"], object.properties["movement_speed"], object.id]
                 self.enemy_list.append(enemy_data)
-                #print(self.enemy_list)
     
     def load_map(self):
+        # loads the background image on a surface and returns it
         temp_surface = pygame.Surface((self.width, self.height))
         self.draw_map(temp_surface)
         return temp_surface
@@ -515,7 +491,7 @@ class TileMap():
                         surface.blit(tile, (x*self.tmxdata.tilewidth, y*self.tmxdata.tileheight))
 
 class NPC(pygame.sprite.Sprite):
-    # Parent class for every character in the game (player, enemies, shopkeepers, etc.)
+    # Parent class for every character in the game (player, enemies, etc.)
     # Contains basic spritesheet functions, basic animation, collision with walls
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side):
         super().__init__()
@@ -529,12 +505,9 @@ class NPC(pygame.sprite.Sprite):
         self.position_y = anch_y
         self.animation_time = 0
         self.size_coef = 3 # default sprite size
-        #print(self.position_x, self.position_y)
 
         self.load_frames(sourcefile, frames_per_side)
         self.rect = self.image.get_rect(topleft = (anch_x, anch_y), width=(self.size[0]*self.size_coef), height =(self.size[1]*self.size_coef))
-        #print(self.rect.x, self.rect.y)
-        #print(self.rect.height)
 
     def load_frames(self, sourcefile, frames_per_side):
         spritesheet = Spritesheet(self.sourcefile)
