@@ -456,6 +456,8 @@ class Room():
 # Source: KidsCanCode - Tile-based game part 12: Loading Tiled Maps
 # https://www.youtube.com/watch?v=QIXyj3WeyZM
 class TileMap():
+    # uses pytmx to load rooms from .tmx sourcefiles into memory
+    # dedicated list of walls/enemies
     def __init__(self, mapfile):
         self.wall_list = []
         self.enemy_list = []
@@ -482,8 +484,9 @@ class TileMap():
         return temp_surface
 
     def draw_map(self, surface):
+        # draws the tilemap onto a surface using the tile layer data
         tilecommand = self.tmxdata.get_tile_image_by_gid
-        for layer in self.tmxdata.visible_layers:
+        for layer in self.tmxdata.visible_layers: # multiple tile layers for complex textures, multiple layers can overlap
             if isinstance(layer, pytmx.TiledTileLayer):
                 for x, y, gid in layer:
                     tile = tilecommand(gid)
@@ -491,8 +494,8 @@ class TileMap():
                         surface.blit(tile, (x*self.tmxdata.tilewidth, y*self.tmxdata.tileheight))
 
 class NPC(pygame.sprite.Sprite):
-    # Parent class for every character in the game (player, enemies, etc.)
-    # Contains basic spritesheet functions, basic animation, collision with walls
+    # Parent class for every overworld character in the game (player, enemies, etc.)
+    # Contains basic spritesheet functions, basic animation functions, collision with walls
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side):
         super().__init__()
         self.game = game
@@ -510,6 +513,9 @@ class NPC(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft = (anch_x, anch_y), width=(self.size[0]*self.size_coef), height =(self.size[1]*self.size_coef))
 
     def load_frames(self, sourcefile, frames_per_side):
+        # key animation function
+        # loads the spritesheet into memory, cuts it up and binds the individual sprites to specific lists
+        # these lists are stored in the memory and switch around based on the character's actions
         spritesheet = Spritesheet(self.sourcefile)
         self.frames_down = []
         self.frames_up = []
@@ -530,15 +536,17 @@ class NPC(pygame.sprite.Sprite):
         self.size = self.image.get_size()
 
     def update(self):
+        # basic Sprite function, updates the sprite every frame
         self.check_for_death()
         self.draw_NPC()
         self.move()
 
     def check_for_death(self):
+        # check to see if the character has died (only relevant to enemy characters, player death is treated separately)
         pass
 
     def draw_NPC(self):
-        # most sprites are 48*48px
+        # most sprites are 48*48px, worms are 64*64
         self.set_state()
         self.animate()
         self.bigger_sprite = pygame.transform.scale(self.base_sprite, (self.size[0]*self.size_coef, self.size[1]*self.size_coef))
@@ -577,20 +585,16 @@ class NPC(pygame.sprite.Sprite):
         pass
 
     def check_wallsX(self):
-        #print(self.direction_x)
         for wall in self.cur_wall_list:
             if self.rect.colliderect(wall):
-                #print("i'm touching a wall")
                 if self.direction_x > 0:
-                    #print("collision right side")
                     self.rect.right = wall.left
                     self.position_x = wall.left-self.rect.width
                 elif self.direction_x < 0:
-                    #print("collision left side")
                     self.rect.left = wall.right
                     self.position_x = wall.right
                 elif self.direction_x == 0:
-                    # This acts as a workaround for an issue with wall collision. As I do not have enough information about the way pygame's colliderect function works, this workaround may end up permanent. I don't care.
+                    # This acts as a workaround for an issue with wall collision. As I do not have enough information about the way pygame's colliderect function works, this workaround is likely to be permanent.
                     self.rect.right = wall.left
                     self.position_x = wall.left-self.rect.width
                     
@@ -599,23 +603,19 @@ class NPC(pygame.sprite.Sprite):
         for wall in self.cur_wall_list:
             if self.rect.colliderect(wall):
                 if self.direction_y > 0:
-                    #print("collision bottom side")
                     self.rect.bottom = wall.top
                     self.position_y = wall.top-self.rect.height
                 elif self.direction_y < 0:
-                    #print("collision top side")
                     self.rect.top = wall.bottom
                     self.position_y = wall.bottom
                 elif self.direction_y == 0:
+                    # similar workaround to the one found in check_wallsX
                     self.rect.bottom = wall.top
                     self.position_y = wall.top-self.rect.height
                 
 
 
 class Player(NPC):
-    ### TO DO:
-    # Instead of moving between rooms based on specific coordinates, find a way to move between rooms based on collisions between custom rects
-    # Maybe even add a small animation? That'd be nice
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side):
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
         
@@ -629,48 +629,35 @@ class Player(NPC):
         self.direction_y = self.game.key_s - self.game.key_w
         
         # rect coordinates are integers, not floats;
-        # round() is an attempt to implement delta_time without breaking the game
         self.position_x += self.direction_x * 3 * self.game.dt * 60
         self.rect.x = int(self.position_x)
-        #print(self.rect.x)
         self.check_wallsX()
+
         self.position_y += self.direction_y * 3 * self.game.dt * 60
         self.rect.y = int(self.position_y)
-        #print(self.rect.y)
         self.check_wallsY()
-        #print("X: ", str(self.position_x), ", Y: ", str(self.position_y))
-        #print("X: ", str(self.rect.x), ", Y: ", str(self.rect.y))
         
         self.check_edge()
 
     def check_edge(self):
-        ### TO DO:
-        # Check the player's position using the self.rect variable
         if self.position_x <= 16: #player approaches left side
             self.game.ow_posX -= 1
             self.position_x = 1180
             self.rect.x = 1180
-            #print("moving left")
         elif self.position_x >= 1232: #player approaches right side
             self.game.ow_posX += 1
             self.position_x = 80
-            #print("moving right")
         elif self.position_y <= 8: #player approaches top side
             self.game.ow_posY -= 1
             self.position_y = 880
             self.rect.y = 880
-            #print("moving up")
         elif self.position_y >= 920: #player approaches bottom side
             self.game.ow_posY += 1
             self.position_y = 48
             self.rect.y = 48
-            #print("moving down")
 
 
 class Enemy(NPC):
-    ## TO DO:
-    # wander() function to move randomly around an anchor point
-    # Multiple enemy types; different move_enemy() functions
     def __init__(self, game, sourcefile, anch_x, anch_y, range, frames_per_side, movement_speed, id):
         # Since the enemy's position is written in world_data, enemies don't need to track their position (at least in theory)
         super().__init__(game, sourcefile, anch_x, anch_y, range, frames_per_side)
@@ -700,17 +687,13 @@ class Enemy(NPC):
         self.check_for_home()
         self.check_for_player() # this is going to check if the player is within some arbitrary range
         if self.player_spotted == True:
-            #print("I see you!")
             self.reset_timers()
             self.chase_player() # this is going to use a pathfinding algorithm to chase the player
             self.check_for_collision()
         else:
-            #print("I'm walking.")
             if self.at_home == False:
-                #print(self.sourcefile, "I'm going home")
                 self.return_home()
             else:
-                #print(self.sourcefile, "I'm home")
                 self.wander()
         #self.find_pos() # this is going to find a new position to move to (within range)
         #self.move_enemy() # this is going to move the enemy to a new position after some arbitrary length of time has passed
