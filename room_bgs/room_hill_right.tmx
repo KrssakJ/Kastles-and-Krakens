@@ -129,7 +129,7 @@
     <property name="enemy_type" value="charger"/>
     <property name="hor_enemy" type="bool" value="true"/>
     <property name="movement_range" type="float" value="300"/>
-    <property name="movement_speed" type="float" value="2"/>
+    <property name="movement_speed" type="float" value="1.5"/>
    </properties>
   </object>
   <object id="28" name="goblin" type="enemy" x="234" y="332" width="48" height="48">
@@ -137,7 +137,7 @@
     <property name="enemy_sprite" value="goblin"/>
     <property name="enemy_type" value="walker"/>
     <property name="movement_range" type="float" value="200"/>
-    <property name="movement_speed" type="float" value="3"/>
+    <property name="movement_speed" type="float" value="2"/>
    </properties>
   </object>
  </objectgroup>

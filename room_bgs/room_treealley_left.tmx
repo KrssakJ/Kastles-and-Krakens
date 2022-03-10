@@ -118,7 +118,7 @@
     <property name="enemy_sprite" value="goblin"/>
     <property name="enemy_type" value="walker"/>
     <property name="movement_range" type="float" value="250"/>
-    <property name="movement_speed" type="float" value="3"/>
+    <property name="movement_speed" type="float" value="2"/>
    </properties>
   </object>
   <object id="9" name="goblin" type="enemy" x="598.667" y="681.333" width="48" height="48">
@@ -126,7 +126,7 @@
     <property name="enemy_sprite" value="goblin"/>
     <property name="enemy_type" value="walker"/>
     <property name="movement_range" type="float" value="250"/>
-    <property name="movement_speed" type="float" value="3"/>
+    <property name="movement_speed" type="float" value="2"/>
    </properties>
   </object>
  </objectgroup>
